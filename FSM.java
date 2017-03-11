@@ -39,77 +39,40 @@ class FSM {
         System.out.print(log + "\n");
         callFunctionForAction(action);
     }
-	public T action_State_1_transitionb1(Callable<T> func) {
-		System.out.print("hey i'm going to state2");
-		func.call();
-	}
-
-	public T action_State_1_transitionb2(Callable<T> func) {
-		func.call();
-	}
-
-	public T action_State_2_transitionb2(Callable<T> func) {
-		System.out.print("hey i'm going to state3");
-		func.call();
-	}
-
-	public T action_State_3_transitionb1(Callable<T> func) {
-		System.out.print("hey i'm going to state4");
-		func.call();
-	}
-
-	public T action_State_4_transitionb2(Callable<T> func) {
-		System.out.print("hey i'm going to finiish!");
-		func.call();
-	}
-
-	public T action_State_4_onentry(Callable<T> func) {
-		System.out.print("i'm entered in State_4");
-		func.call();
-	}
-
-	public T action_State_4_onexit(Callable<T> func) {
-		System.out.print("i'm outta this state !");
-		func.call();
-	}
 
 	void activate(Event event) {
 		switch (currentState) {
 			case State_1:
 				if (event == Event.b1) {
-					action_transitionb1();
+					callFunctionForActionWithLog(State_1_b1,hey i'm going to state2);
 					currentState = State.State_2;
 				}
 				if (event == Event.b2) {
-					action_transitionb2();
+					callFunctionForAction(State_1_b2);
 					currentState = State.State_3;
 				}
-				
 			break;
 			case State_2:
 				if (event == Event.b2) {
-					action_transitionb2();
+					callFunctionForActionWithLog(State_2_b2,hey i'm going to state3);
 					currentState = State.State_3;
 				}
-				
 			break;
 			case State_3:
 				if (event == Event.b1) {
-					action_transitionb1();
+					callFunctionForActionWithLog(State_3_b1,hey i'm going to state4);
 					currentState = State.State_4;
 				}
-				
 			break;
 			case State_4:
-				action_State_4onentry();
+				callFunctionForActionWithLog(State_4_onexit,i'm outta this state !);
 				if (event == Event.b2) {
-					action_transitionb2();
+					callFunctionForActionWithLog(State_4_b2,hey i'm going to finiish!);
 					currentState = State.Final_1;
 				}
-				action_State_4onexit();
+				callFunctionForActionWithLog(State_4_onexit,i'm outta this state !);
 			break;
 			case Final_1:
-				
 			break;
 		}
 	}
