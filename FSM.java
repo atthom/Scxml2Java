@@ -44,33 +44,33 @@ class FSM {
 		switch (currentState) {
 			case State_1:
 				if (event == Event.b1) {
-					callFunctionForActionWithLog(State_1_b1,hey i'm going to state2);
+					callFunctionForActionWithLog("State_1_b1","hey i'm going to state2");
 					currentState = State.State_2;
 				}
 				if (event == Event.b2) {
-					callFunctionForAction(State_1_b2);
+					callFunctionForAction("State_1_b2");
 					currentState = State.State_3;
 				}
 			break;
 			case State_2:
 				if (event == Event.b2) {
-					callFunctionForActionWithLog(State_2_b2,hey i'm going to state3);
+					callFunctionForActionWithLog("State_2_b2","hey i'm going to state3");
 					currentState = State.State_3;
 				}
 			break;
 			case State_3:
 				if (event == Event.b1) {
-					callFunctionForActionWithLog(State_3_b1,hey i'm going to state4);
+					callFunctionForActionWithLog("State_3_b1","hey i'm going to state4");
 					currentState = State.State_4;
 				}
 			break;
 			case State_4:
-				callFunctionForActionWithLog(State_4_onexit,i'm outta this state !);
+				callFunctionForActionWithLog("State_4_onexit","i'm outta this state !");
 				if (event == Event.b2) {
-					callFunctionForActionWithLog(State_4_b2,hey i'm going to finiish!);
+					callFunctionForActionWithLog("State_4_b2","hey i'm going to finiish!");
 					currentState = State.Final_1;
 				}
-				callFunctionForActionWithLog(State_4_onexit,i'm outta this state !);
+				callFunctionForActionWithLog("State_4_onexit","i'm outta this state !");
 			break;
 			case Final_1:
 			break;

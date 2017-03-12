@@ -10,9 +10,9 @@ class Action:
 
     def to_string(self, pretty):
         if self.log is None:
-            return pretty_printer(pretty) + "callFunctionForAction(" + self.name + ");\n"
+            return pretty_printer(pretty) + "callFunctionForAction(\"" + self.name + "\");\n"
         else:
-            return pretty_printer(pretty) + "callFunctionForActionWithLog(" + self.name + "," + self.log + ");\n"
+            return pretty_printer(pretty) + "callFunctionForActionWithLog(\"" + self.name + "\",\"" + self.log + "\");\n"
 
 
 class Transition:
@@ -24,7 +24,6 @@ class Transition:
     def to_string(self, pretty):
         str = pretty_printer(pretty) + "if (event == Event." + self.name_event + ") {\n"
         pretty += 1
-        #str += pretty_printer(pretty) + "action_" + self.action_trigger + "();\n"
         str += self.action_trigger.to_string(pretty)
         str += pretty_printer(pretty) + "currentState = State." + self.next_state + ";\n"
         pretty -= 1
