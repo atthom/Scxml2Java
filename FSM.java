@@ -42,21 +42,21 @@ class FSM {
 
 	void activate(Event event) {
 		switch (currentState) {
-			case State_1:
-			switch (currentState) {
-			}
-				if (event == Event.b1) {
-					callFunctionForAction("State_1_b1");
-					currentState = State.State_2;
-				}
-			break;
 			case State_1_1:
 				if (event == Event.b1) {
 					callFunctionForAction("State_1_1_b1");
 					currentState = State.State_6;
 				}
+				if (event == Event.b1) {
+					callFunctionForAction("State_1_b1");
+					currentState = State.State_2;
+				}
 			break;
 			case State_6:
+				if (event == Event.b1) {
+					callFunctionForAction("State_1_b1");
+					currentState = State.State_2;
+				}
 			break;
 			case State_2:
 			break;

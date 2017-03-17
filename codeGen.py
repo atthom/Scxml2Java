@@ -34,11 +34,25 @@ class State:
         self.state = current_state
         self.list_transition = []
         self.all_State = []
-        self.onEntry = None
-        self.onExit = None
+        self.onEntry = []
+        self.onExit = []
+
+    def merge(self, state2):
+        for action in self.onEntry:
+            state2.set_entry(action)
+
+        for action in self.onExit:
+            state2.set_exit(action)
+
+        for transition in self.list_transition:
+            if transition not in state2.get_transitions():
+                state2.add_transition(transition)
 
     def get_state(self):
         return self.state
+
+    def get_all_stats(self):
+        return self.all_State
 
     def add_transition(self, transition):
         self.list_transition.append(transition)
@@ -50,39 +64,39 @@ class State:
         return self.list_transition
 
     def set_entry(self, action, log=None):
-        self.onEntry = Action(action, log)
+        self.onEntry.append(Action(action, log))
 
     def set_exit(self, action, log=None):
-        self.onExit = Action(action, log)
+        self.onExit.append(Action(action, log))
 
     def str_cases(self, pretty):
         str_case = ""
         pretty += 1
-        if self.onEntry is not None:
-            str_case += self.onEntry.to_string(pretty)
+
+        for action in self.onEntry:
+            str_case += action.to_string(pretty)
 
         for condition in self.list_transition:
             str_case += condition.to_string(pretty)
 
-        if self.onEntry is not None:
-            str_case += self.onEntry.to_string(pretty)
+        for action in self.onExit:
+            str_case += action.to_string(pretty)
+
         pretty -= 1
         return str_case
 
     def to_string(self, pretty):
         str_state = ""
-        str_state += pretty_printer(pretty) + "case " + self.state + ":\n"
 
         if self.all_State:
-            str_state += pretty_printer(pretty) + "switch (currentState) {\n"
-            pretty += 1
             for state in self.all_State:
-                state.to_string(pretty)
-            pretty -= 1
-            str_state += pretty_printer(pretty) + "}\n"
+                self.merge(state)
+                str_state += state.to_string(pretty)
+        else:
+            str_state += pretty_printer(pretty) + "case " + self.state + ":\n"
+            str_state += self.str_cases(pretty)
+            str_state += pretty_printer(pretty) + "break;\n"
 
-        str_state += self.str_cases(pretty)
-        str_state += pretty_printer(pretty) + "break;\n"
         return str_state
 
 
@@ -131,11 +145,8 @@ def generate_file_from_skeleton():
     pretty += 1
     already_done = []
     for state in all_states:
-        #first += case.to_string(pretty)
-        if state not in already_done:
-            first += state.to_string(pretty)
-            already_done.append(state)
-            already_done.append(state.all_State)
+        print(state.get_state())
+        first += state.to_string(pretty)
 
     first += pretty_printer(2) + "}\n"
     first += pretty_printer(1) + "}\n"
@@ -166,33 +177,35 @@ def gen_transition(current_State, transition):
 
 
 def make_transitions(state):
-    current_State = State(state.get("id"))
-    all_states.append(current_State)
+    id = state.get("id")
+    current_state = State(id)
+    all_states_names.append(id)
+
     for transition in state:
         if transition.get("scenegeometry") is not None:
             continue
         if transition.tag.split("}")[1] == "state":
-            current_State.add_state(make_transitions(transition))
+            current_state.add_state(make_transitions(transition))
         else:
-            gen_transition(current_State, transition)
-    return current_State
+            gen_transition(current_state, transition)
+    return current_state
+
 tree = ET.parse('inside.html')
 
 
 def make_state(root):
     for state in root:
-        id = state.get("id")
-        if id is None:
+        if state.get("id") is None:
             continue
-        all_states_names.append(id)
-        make_transitions(state)
+        all_states.append(make_transitions(state))
 
 all_states_names = []
 all_states = []
 all_event = []
-states_first_tier = []
 
 root = tree.getroot()
 
 make_state(root)
+
+print(all_states_names)
 generate_file_from_skeleton()
