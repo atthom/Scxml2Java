@@ -118,8 +118,8 @@ def gen_event(pretty, name_event, current_state, next_state):
     return begin + meanwhile + end
 
 
-def get_enum(list):
-    return str(list).replace("\'", "")\
+def get_enum(type_enum, list):
+    return type_enum + str(list).replace("\'", "")\
         .replace("[", "{")\
         .replace("]", "}")
 
@@ -137,15 +137,16 @@ def static_begin():
 
 def generate_file_from_skeleton():
     first = static_begin()
+    first = first.replace("Event {}", get_enum("Event ", all_event))
+    first = first.replace("State {}", get_enum("State ", all_states_names))
     pretty = 1
     first += "\n"
     first += pretty_printer(pretty) + "void activate(Event event) {\n"
     pretty += 1
     first += pretty_printer(pretty) + "switch (currentState) {\n"
     pretty += 1
-    already_done = []
-    for state in all_states:
-        print(state.get_state())
+
+    for state in all_states_top_level:
         first += state.to_string(pretty)
 
     first += pretty_printer(2) + "}\n"
@@ -197,10 +198,10 @@ def make_state(root):
     for state in root:
         if state.get("id") is None:
             continue
-        all_states.append(make_transitions(state))
+        all_states_top_level.append(make_transitions(state))
 
 all_states_names = []
-all_states = []
+all_states_top_level = []
 all_event = []
 
 root = tree.getroot()

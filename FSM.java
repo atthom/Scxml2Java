@@ -2,9 +2,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
-enum Event {b1, b2}
+enum Event {b1}
 
-enum State {State_1, State_2, State_3, State_4, Final_1}
+enum State {State_1, State_1_1, State_6, State_2}
 
 
 class FSM {
