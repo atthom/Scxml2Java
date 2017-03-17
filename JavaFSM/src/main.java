@@ -25,6 +25,9 @@ public class main {
         System.out.println("pezokpzaeokfezpokfepok\n");
     }
 
+
+
+
     public void REM() {
         System.out.println("It's the end of the hello world, as we know it !\n");
     }

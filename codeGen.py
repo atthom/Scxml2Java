@@ -1,7 +1,5 @@
 import xml.etree.ElementTree as ET
 
-from nltk.ccg.api import AbstractCCGCategory
-
 
 class Action:
     def __init__(self, name, log=None):
@@ -31,7 +29,7 @@ class Transition:
         return str
 
 
-class Case:
+class State:
     def __init__(self, current_state):
         self.state = current_state
         self.list_transition = []
@@ -48,14 +46,17 @@ class Case:
     def add_state(self, state):
         self.all_State.append(state)
 
+    def get_transitions(self):
+        return self.list_transition
+
     def set_entry(self, action, log=None):
         self.onEntry = Action(action, log)
 
     def set_exit(self, action, log=None):
         self.onExit = Action(action, log)
 
-    def to_string(self, pretty):
-        str_case = pretty_printer(pretty) + "case " + self.state + ":\n"
+    def str_cases(self, pretty):
+        str_case = ""
         pretty += 1
         if self.onEntry is not None:
             str_case += self.onEntry.to_string(pretty)
@@ -66,21 +67,23 @@ class Case:
         if self.onEntry is not None:
             str_case += self.onEntry.to_string(pretty)
         pretty -= 1
-        str_case += pretty_printer(pretty) + "break;\n"
         return str_case
 
+    def to_string(self, pretty):
+        str_state = ""
+        str_state += pretty_printer(pretty) + "case " + self.state + ":\n"
 
-def gen_action(current_state, moment, log=None):
-    pretty = 1
-    begin = pretty_printer(pretty) + "public T action_" + current_state + "_" + moment + "(Callable<T> func) {\n"
-    after = ""
-    pretty += 1
-    if log is not None:
-        after = pretty_printer(pretty) + "System.out.print(\"" + log + "\");\n"
-    after += pretty_printer(pretty) + "func.call();\n"
-    pretty -= 1
-    end = pretty_printer(pretty) + "}\n"
-    return begin + after + end
+        if self.all_State:
+            str_state += pretty_printer(pretty) + "switch (currentState) {\n"
+            pretty += 1
+            for state in self.all_State:
+                state.to_string(pretty)
+            pretty -= 1
+            str_state += pretty_printer(pretty) + "}\n"
+
+        str_state += self.str_cases(pretty)
+        str_state += pretty_printer(pretty) + "break;\n"
+        return str_state
 
 
 def gen_case_state(pretty, name_state, all_event_for_state):
@@ -126,8 +129,13 @@ def generate_file_from_skeleton():
     pretty += 1
     first += pretty_printer(pretty) + "switch (currentState) {\n"
     pretty += 1
-    for case in all_case:
-        first += case.to_string(pretty)
+    already_done = []
+    for state in all_states:
+        #first += case.to_string(pretty)
+        if state not in already_done:
+            first += state.to_string(pretty)
+            already_done.append(state)
+            already_done.append(state.all_State)
 
     first += pretty_printer(2) + "}\n"
     first += pretty_printer(1) + "}\n"
@@ -136,53 +144,55 @@ def generate_file_from_skeleton():
     open("FSM.java", "w").write(first)
 
 
-def gen_transition(current_case, transition):
+def gen_transition(current_State, transition):
     event = transition.get("event")
     target = transition.get("target")
     log = transition.find("{http://www.w3.org/2005/07/scxml}log")
 
     name_transition = transition.tag.split("}")[1]
-    str_action = current_case.get_state()
+    str_action = current_State.get_state()
     str_log = None
     if log is not None:
         str_log = log.get("expr")
-
     if event is not None:
         str_action += "_" + event
         action = Action(str_action, str_log)
         current_transition = Transition(event, target, action)
-        current_case.add_transition(current_transition)
+        current_State.add_transition(current_transition)
         if event not in all_event:
             all_event.append(event)
     else:
-        current_case.set_entry(str_action + "_" + name_transition, str_log)
+        current_State.set_entry(str_action + "_" + name_transition, str_log)
 
 
-def make_transitions(id):
-    current_case = Case(id)
+def make_transitions(state):
+    current_State = State(state.get("id"))
+    all_states.append(current_State)
     for transition in state:
         if transition.get("scenegeometry") is not None:
             continue
-        gen_transition(current_case, transition)
+        if transition.tag.split("}")[1] == "state":
+            current_State.add_state(make_transitions(transition))
+        else:
+            gen_transition(current_State, transition)
+    return current_State
+tree = ET.parse('inside.html')
 
-    all_case.append(current_case)
 
-tree = ET.parse('abitmoreadvanced.html')
+def make_state(root):
+    for state in root:
+        id = state.get("id")
+        if id is None:
+            continue
+        all_states_names.append(id)
+        make_transitions(state)
 
+all_states_names = []
 all_states = []
 all_event = []
-all_actions = []
-all_case = []
+states_first_tier = []
 
 root = tree.getroot()
-for state in root:
-    id = state.get("id")
 
-    if id is None:
-        continue
-
-    all_states.append(id)
-
-    make_transitions(id)
-
+make_state(root)
 generate_file_from_skeleton()
