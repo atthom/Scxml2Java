@@ -39,3 +39,6 @@ class FSM {
         System.out.print(log + "\n");
         callFunctionForAction(action);
     }
+
+    void activate(Event event) {
+		switch (currentState) {

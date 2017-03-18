@@ -48,12 +48,6 @@ class State:
             if transition.name_event not in state2.get_name_transitions():
                 state2.add_transition(transition)
 
-    def get_state(self):
-        return self.state
-
-    def get_all_stats(self):
-        return self.all_State
-
     def add_transition(self, transition):
         self.list_transition.append(transition)
 
@@ -74,8 +68,8 @@ class State:
 
     def str_cases(self, pretty):
         str_case = ""
+        str_case += pretty_printer(pretty) + "case " + self.state + ":\n"
         pretty += 1
-
         for action in self.onEntry:
             str_case += action.to_string(pretty)
 
@@ -84,8 +78,9 @@ class State:
 
         for action in self.onExit:
             str_case += action.to_string(pretty)
-
         pretty -= 1
+        str_case += pretty_printer(pretty) + "break;\n"
+
         return str_case
 
     def to_string(self, pretty):
@@ -96,28 +91,8 @@ class State:
                 str_state += state.to_string(pretty)
             all_states_names.remove(self.state)
         else:
-            str_state += pretty_printer(pretty) + "case " + self.state + ":\n"
             str_state += self.str_cases(pretty)
-            str_state += pretty_printer(pretty) + "break;\n"
         return str_state
-
-
-def gen_case_state(pretty, name_state, all_event_for_state):
-    begin = pretty_printer(pretty) + "case " + name_state + ":\n"
-    end = pretty_printer(pretty) + "break;\n"
-    return begin + all_event_for_state + end
-
-
-def gen_event(pretty, name_event, current_state, next_state):
-    pretty += 1
-    begin = pretty_printer(pretty) + "if (event == Event." + name_event + ") {\n"
-    pretty += 1
-    meanwhile = pretty_printer(pretty) + "action_" + current_state + "();\n"
-    meanwhile += pretty_printer(pretty) + "currentState = State." + next_state + ";\n"
-    pretty -= 1
-    end = pretty_printer(pretty) + "}\n"
-    pretty -= 1
-    return begin + meanwhile + end
 
 
 def get_enum(type_enum, list):
@@ -133,18 +108,9 @@ def pretty_printer(nb):
     return tab
 
 
-def static_begin():
-    return open("static_begin.protojava", "r").read()
-
-
 def generate_file_from_skeleton():
-    first = static_begin()
-    pretty = 1
-    first += "\n"
-    first += pretty_printer(pretty) + "void activate(Event event) {\n"
-    pretty += 1
-    first += pretty_printer(pretty) + "switch (currentState) {\n"
-    pretty += 1
+    first = open("static_begin.protojava", "r").read()
+    pretty = 3
 
     for state in all_states_top_level:
         first += state.to_string(pretty)
@@ -154,7 +120,7 @@ def generate_file_from_skeleton():
     first += "}\n"
     first = first.replace("Event {}", get_enum("Event ", all_event))
     first = first.replace("State {}", get_enum("State ", all_states_names))
-    first = first.replace("this.currentState = State.;", "this.currentState = State." + all_states_names[0] + ";")
+    first = first.replace("State.;", "State." + all_states_names[0] + ";")
 
     open("FSM.java", "w").write(first)
 
@@ -165,7 +131,7 @@ def gen_transition(current_State, transition):
     log = transition.find("{http://www.w3.org/2005/07/scxml}log")
 
     name_transition = transition.tag.split("}")[1]
-    str_action = current_State.get_state()
+    str_action = current_State.state
     str_log = None
     if log is not None:
         str_log = log.get("expr")
@@ -194,8 +160,6 @@ def make_transitions(state):
             gen_transition(current_state, transition)
     return current_state
 
-tree = ET.parse('inside.html')
-
 
 def make_state(root):
     for state in root:
@@ -203,10 +167,12 @@ def make_state(root):
             continue
         all_states_top_level.append(make_transitions(state))
 
+
 all_states_names = []
 all_states_top_level = []
 all_event = []
 
+tree = ET.parse('inside.html')
 root = tree.getroot()
 
 make_state(root)

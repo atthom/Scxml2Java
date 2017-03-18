@@ -40,7 +40,7 @@ class FSM {
         callFunctionForAction(action);
     }
 
-	void activate(Event event) {
+    void activate(Event event) {
 		switch (currentState) {
 			case State_1_1:
 				if (event == Event.b1) {
