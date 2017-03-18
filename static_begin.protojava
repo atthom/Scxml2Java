@@ -14,7 +14,7 @@ class FSM {
 
 
     public FSM(Object context) {
-        this.currentState = State.State_1;
+        this.currentState = State.;
         this.functions = new HashMap<>();
         this.context = context;
     }

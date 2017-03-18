@@ -45,7 +45,7 @@ class State:
             state2.set_exit(action)
 
         for transition in self.list_transition:
-            if transition not in state2.get_transitions():
+            if transition.name_event not in state2.get_name_transitions():
                 state2.add_transition(transition)
 
     def get_state(self):
@@ -60,8 +60,11 @@ class State:
     def add_state(self, state):
         self.all_State.append(state)
 
-    def get_transitions(self):
-        return self.list_transition
+    def get_name_transitions(self):
+        name_transitions = []
+        for transition in self.list_transition:
+            name_transitions.append(transition.name_event)
+        return name_transitions
 
     def set_entry(self, action, log=None):
         self.onEntry.append(Action(action, log))
@@ -87,16 +90,15 @@ class State:
 
     def to_string(self, pretty):
         str_state = ""
-
         if self.all_State:
             for state in self.all_State:
                 self.merge(state)
                 str_state += state.to_string(pretty)
+            all_states_names.remove(self.state)
         else:
             str_state += pretty_printer(pretty) + "case " + self.state + ":\n"
             str_state += self.str_cases(pretty)
             str_state += pretty_printer(pretty) + "break;\n"
-
         return str_state
 
 
@@ -137,8 +139,6 @@ def static_begin():
 
 def generate_file_from_skeleton():
     first = static_begin()
-    first = first.replace("Event {}", get_enum("Event ", all_event))
-    first = first.replace("State {}", get_enum("State ", all_states_names))
     pretty = 1
     first += "\n"
     first += pretty_printer(pretty) + "void activate(Event event) {\n"
@@ -152,6 +152,9 @@ def generate_file_from_skeleton():
     first += pretty_printer(2) + "}\n"
     first += pretty_printer(1) + "}\n"
     first += "}\n"
+    first = first.replace("Event {}", get_enum("Event ", all_event))
+    first = first.replace("State {}", get_enum("State ", all_states_names))
+    first = first.replace("this.currentState = State.;", "this.currentState = State." + all_states_names[0] + ";")
 
     open("FSM.java", "w").write(first)
 
@@ -207,6 +210,4 @@ all_event = []
 root = tree.getroot()
 
 make_state(root)
-
-print(all_states_names)
 generate_file_from_skeleton()

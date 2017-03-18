@@ -4,7 +4,7 @@ import java.util.*;
 
 enum Event {b1}
 
-enum State {State_1, State_1_1, State_6, State_2}
+enum State {State_1_1, State_6, State_2}
 
 
 class FSM {
@@ -14,7 +14,7 @@ class FSM {
 
 
     public FSM(Object context) {
-        this.currentState = State.State_1;
+        this.currentState = State.State_1_1;
         this.functions = new HashMap<>();
         this.context = context;
     }
@@ -44,17 +44,13 @@ class FSM {
 		switch (currentState) {
 			case State_1_1:
 				if (event == Event.b1) {
-					callFunctionForAction("State_1_1_b1");
+					callFunctionForActionWithLog("State_1_1_b1","win");
 					currentState = State.State_6;
-				}
-				if (event == Event.b1) {
-					callFunctionForAction("State_1_b1");
-					currentState = State.State_2;
 				}
 			break;
 			case State_6:
 				if (event == Event.b1) {
-					callFunctionForAction("State_1_b1");
+					callFunctionForActionWithLog("State_1_b1","fail");
 					currentState = State.State_2;
 				}
 			break;
