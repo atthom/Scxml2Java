@@ -185,14 +185,14 @@ def make_transitions(state):
 
     if state.tag.split("}")[1] == "parallel":
         current_state.add_state(unparallelize(state))
-
-    for transition in state:
-        if transition.get("scenegeometry") is not None:
-            continue
-        if transition.tag.split("}")[1] == "state":
-            current_state.add_state(make_transitions(transition))
-        elif transition.tag.split("}")[1] == "transition":
-            gen_transition(current_state, transition)
+    else:
+        for transition in state:
+            if transition.get("scenegeometry") is not None:
+                continue
+            if transition.tag.split("}")[1] == "state":
+                current_state.add_state(make_transitions(transition))
+            elif transition.tag.split("}")[1] == "transition":
+                gen_transition(current_state, transition)
 
     return current_state
 
