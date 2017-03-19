@@ -2,9 +2,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
-enum Event {b1}
+enum Event {b1, b2, e}
 
-enum State {State_1_1, State_6, State_2}
+enum State {State_1_1, State_6, State_9State_10, State_9State_12, State_11State_10, State_11State_12, State_7, State_9, State_11, State_8, State_10, State_12}
 
 
 class FSM {
@@ -44,17 +44,103 @@ class FSM {
 		switch (currentState) {
 			case State_1_1:
 				if (event == Event.b1) {
-					callFunctionForActionWithLog("State_1_1_b1","win");
+					callFunctionForAction("State_1_1_b1");
 					currentState = State.State_6;
 				}
 			break;
 			case State_6:
 				if (event == Event.b1) {
-					callFunctionForActionWithLog("State_1_b1","fail");
-					currentState = State.State_2;
+					callFunctionForAction("State_1_b1");
+					currentState = State.Parallel_1;
 				}
 			break;
-			case State_2:
+			case State_9State_10:
+				if (event == Event.b1) {
+					callFunctionForAction("State_9_b1State_12_b1");
+					currentState = State.State_11State_12;
+				}
+				if (event == Event.b2) {
+					callFunctionForAction("State_10_b2");
+					currentState = State.State_11State_12;
+				}
+				if (event == Event.e) {
+					callFunctionForAction("Parallel_1_e");
+					currentState = State.State_1;
+				}
+			break;
+			case State_9State_12:
+				if (event == Event.b1) {
+					callFunctionForAction("State_9_b1State_12_b1");
+					currentState = State.State_11State_12State_10;
+				}
+				if (event == Event.e) {
+					callFunctionForAction("Parallel_1_e");
+					currentState = State.State_1;
+				}
+			break;
+			case State_11State_10:
+				if (event == Event.b2) {
+					callFunctionForAction("State_11_b2State_10_b2");
+					currentState = State.State_9State_11State_12;
+				}
+				if (event == Event.e) {
+					callFunctionForAction("Parallel_1_e");
+					currentState = State.State_1;
+				}
+			break;
+			case State_11State_12:
+				if (event == Event.b2) {
+					callFunctionForAction("State_11_b2State_10_b2");
+					currentState = State.State_9State_10;
+				}
+				if (event == Event.b1) {
+					callFunctionForAction("State_12_b1");
+					currentState = State.State_9State_10;
+				}
+				if (event == Event.e) {
+					callFunctionForAction("Parallel_1_e");
+					currentState = State.State_1;
+				}
+			break;
+			case State_9:
+				if (event == Event.b1) {
+					callFunctionForAction("State_9_b1");
+					currentState = State.State_11;
+				}
+				if (event == Event.e) {
+					callFunctionForAction("Parallel_1_e");
+					currentState = State.State_1;
+				}
+			break;
+			case State_11:
+				if (event == Event.b2) {
+					callFunctionForAction("State_11_b2");
+					currentState = State.State_9;
+				}
+				if (event == Event.e) {
+					callFunctionForAction("Parallel_1_e");
+					currentState = State.State_1;
+				}
+			break;
+			case State_10:
+				if (event == Event.b2) {
+					callFunctionForAction("State_10_b2");
+					currentState = State.State_12;
+				}
+				if (event == Event.e) {
+					callFunctionForAction("Parallel_1_e");
+					currentState = State.State_1;
+				}
+			break;
+			case State_12:
+				if (event == Event.b1) {
+					callFunctionForAction("State_12_b1");
+					currentState = State.State_10;
+				}
+				if (event == Event.e) {
+					callFunctionForAction("Parallel_1_e");
+					currentState = State.State_1;
+				}
 			break;
 		}
 	}

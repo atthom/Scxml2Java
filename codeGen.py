@@ -6,6 +6,14 @@ class Action:
         self.name = name
         self.log = log
 
+    def merge(self, action):
+        self.name += action.name
+        if action.log is not None:
+            if self.log is None:
+                self.log = action.log
+            else:
+                self.log += "\n" + action.log
+
     def to_string(self, pretty):
         if self.log is None:
             return pretty_printer(pretty) + "callFunctionForAction(\"" + self.name + "\");\n"
@@ -14,15 +22,38 @@ class Action:
 
 
 class Transition:
-    def __init__(self, name_event, next_state, action_trigger):
+    def __init__(self, name_event, next_state, action_trigger=None):
         self.name_event = name_event
         self.next_state = next_state
-        self.action_trigger = action_trigger
+        self.action_trigger = []
+        if action_trigger is not None:
+            self.action_trigger.append(action_trigger)
+
+    def add_action(self, action):
+        self.action_trigger.append(action)
+
+    def add_state(self, state):
+        self.next_state.append(state)
+
+    def paralellize_transitions(self, t2):
+        if self.name_event == t2.name_event:
+            ret = Transition(self.name_event, self.next_state + t2.next_state)
+            for action1 in self.action_trigger:
+                for action2 in t2.action_trigger:
+                    action1.merge(action2)
+                    ret.add_action(action1)
+            return [ret]
+        else:
+            self.next_state += t2.next_state
+            t2.next_state = self.next_state
+            return [self, t2]
 
     def to_string(self, pretty):
         str = pretty_printer(pretty) + "if (event == Event." + self.name_event + ") {\n"
         pretty += 1
-        str += self.action_trigger.to_string(pretty)
+        for action in self.action_trigger:
+            str += action.to_string(pretty)
+
         str += pretty_printer(pretty) + "currentState = State." + self.next_state + ";\n"
         pretty -= 1
         str += pretty_printer(pretty) + "}\n"
@@ -32,8 +63,8 @@ class Transition:
 class State:
     def __init__(self, current_state):
         self.state = current_state
-        self.list_transition = []
-        self.all_State = []
+        self.transitions = []
+        self.states = []
         self.onEntry = []
         self.onExit = []
 
@@ -44,19 +75,19 @@ class State:
         for action in self.onExit:
             state2.set_exit(action)
 
-        for transition in self.list_transition:
+        for transition in self.transitions:
             if transition.name_event not in state2.get_name_transitions():
                 state2.add_transition(transition)
 
     def add_transition(self, transition):
-        self.list_transition.append(transition)
+        self.transitions.append(transition)
 
     def add_state(self, state):
-        self.all_State.append(state)
+        self.states.append(state)
 
     def get_name_transitions(self):
         name_transitions = []
-        for transition in self.list_transition:
+        for transition in self.transitions:
             name_transitions.append(transition.name_event)
         return name_transitions
 
@@ -73,7 +104,7 @@ class State:
         for action in self.onEntry:
             str_case += action.to_string(pretty)
 
-        for condition in self.list_transition:
+        for condition in self.transitions:
             str_case += condition.to_string(pretty)
 
         for action in self.onExit:
@@ -85,11 +116,12 @@ class State:
 
     def to_string(self, pretty):
         str_state = ""
-        if self.all_State:
-            for state in self.all_State:
+        if self.states:
+            for state in self.states:
                 self.merge(state)
                 str_state += state.to_string(pretty)
-            all_states_names.remove(self.state)
+            if self.state in all_states_names:
+                all_states_names.remove(self.state)
         else:
             str_state += self.str_cases(pretty)
         return str_state
@@ -147,17 +179,21 @@ def gen_transition(current_State, transition):
 
 
 def make_transitions(state):
-    id = state.get("id")
-    current_state = State(id)
-    all_states_names.append(id)
+    _id = state.get("id")
+    current_state = State(_id)
+    all_states_names.append(_id)
+
+    if state.tag.split("}")[1] == "parallel":
+        current_state.add_state(unparallelize(state))
 
     for transition in state:
         if transition.get("scenegeometry") is not None:
             continue
         if transition.tag.split("}")[1] == "state":
             current_state.add_state(make_transitions(transition))
-        else:
+        elif transition.tag.split("}")[1] == "transition":
             gen_transition(current_state, transition)
+
     return current_state
 
 
@@ -165,14 +201,47 @@ def make_state(root):
     for state in root:
         if state.get("id") is None:
             continue
+
         all_states_top_level.append(make_transitions(state))
 
+
+def unparallelize(parallel_root):
+    newPara = State(parallel_root.get("id"))
+    all_states_names.append(parallel_root.get("id"))
+    childs = []
+    for parallel in parallel_root:
+        if parallel.tag.split("}")[1] == "state":
+            childs.append(make_transitions(parallel))
+
+    old_states = []
+
+    for states1 in childs[0].states:
+        for states2 in childs[1].states:
+            current_state = State(states1.state+states2.state)
+            for trans1 in states1.transitions:
+                for trans2 in states2.transitions:
+                    tr = trans1.paralellize_transitions(trans2)
+                    for trans in tr:
+                        current_state.add_transition(trans)
+
+            newPara.add_state(current_state)
+            all_states_names.append(states1.state + states2.state)
+
+            if states2 not in old_states:
+                old_states.append(states2)
+        if states1 not in old_states:
+            old_states.append(states1)
+
+    for state in old_states:
+        all_states_names.remove(state.state)
+
+    return newPara
 
 all_states_names = []
 all_states_top_level = []
 all_event = []
 
-tree = ET.parse('inside.html')
+tree = ET.parse('complete.html')
 root = tree.getroot()
 
 make_state(root)
