@@ -33,8 +33,7 @@ class Transition:
         self.action_trigger.append(action)
 
     def add_all_actions(self,list_actions):
-        for action in list_actions:
-            self.add_action(action)
+        self.action_trigger.extend(list_actions)
     
     def add_state(self, state):
         self.next_state.append(state)  
@@ -61,8 +60,8 @@ class State:
         self.onExit = []
 
     def merge(self, state2):
-        [state2.set_entry(action) for action in self.onEntry]
-        [state2.set_exit(action) for action in self.onExit]
+        state2.onEntry.extend(self.onEntry)
+        state2.onExit.extend(self.onExit)
 
         [state2.add_transition(transition)   for transition in self.transitions
          if transition.name_event not in state2.get_name_transitions()]
@@ -70,16 +69,16 @@ class State:
     def add_transition(self, transition):
         self.transitions.append(transition)
 
-    def paralellize_transitions(self, t2):
-        if self.name_event == t2.name_event:
-            self.next_state += t2.next_state
-            for action2 in t2.action_trigger:
-                if action2.name not in self.next_state:
-                    self.add_action(action2)
-        return self
-
     def add_state(self, state):
         self.states.append(state)
+
+    def append_transition(self,state):
+        if state.state in self.state: 
+            for tr in state.transitions:      
+                next_name = self.state.replace(state.state, tr.next_state) 
+                new_tr = Transition(tr.name_event,next_name)
+                new_tr.add_all_actions(tr.action_trigger)
+                self.add_transition(new_tr)
 
     def get_name_transitions(self):
         return [transition.name_event for transition in self.transitions]
@@ -140,9 +139,7 @@ def generate_file_from_skeleton():
     for state in all_states_top_level:
         first += state.to_string(pretty)
 
-    first += pretty_printer(2) + "}\n"
-    first += pretty_printer(1) + "}\n"
-    first += "}\n"
+    first += pretty_printer(2) + "}\n" + pretty_printer(1) + "}\n}\n"
     first = first.replace("Event {}", get_enum("Event ", all_event))
     first = first.replace("State {}", get_enum("State ", all_states_names))
     first = first.replace("State.;", "State." + all_states_names[0] + ";")
@@ -189,108 +186,45 @@ def make_transitions(state):
 
     return current_state
 
-
 def make_state(xml_root):
     for state in xml_root:
         if state.get("id") is not None:
             all_states_top_level.append(make_transitions(state))
 
-
-def unparallelize(parallel_root):
-    newPara = State(parallel_root.get("id"))
-    all_states_names.append(parallel_root.get("id"))
-
-    childs = [make_transitions(parallel) for parallel in parallel_root if parallel.tag.split("}")[1] == "state"]
-
-    old_states = []
-
+def initialize_parallel_states(childs):
+    name_to_delete = []
     states_names = []
 
     for child in childs:
         new_names = [states.state for states in child.states]
-        
+        name_to_delete.extend([states.state for states in child.states])
+        name_to_delete.append(child.state)
         if states_names:
             states_names = [old+new for old in states_names for new in new_names]
         else:
             states_names = [names for names in new_names]
 
+    global all_states_names
+    all_states_names = [name for name in all_states_names if name not in name_to_delete]
+    all_states_names.extend(states_names)
+
+    return states_names
+
+def unparallelize(parallel_root):
+    newPara = State(parallel_root.get("id"))
+    childs = [make_transitions(parallel) for parallel in parallel_root if parallel.tag.split("}")[1] == "state"]
+    states_names = initialize_parallel_states(childs)
+
     new_states = []
-    
     for name in states_names:
         current_state = State(name)
         for parallel_state in childs:            
             for state in parallel_state.states: 
-                if state.state in name:                                           
-                    t1 = state.transitions[0]   
-                    next_name = name.replace(state.state, t1.next_state) 
-                    new_tr = Transition(t1.name_event,next_name)
-                    new_tr.add_all_actions(t1.action_trigger)
-                    current_state.add_transition(new_tr)
+                current_state.append_transition(state)
         new_states.append(current_state)
 
-    for state in new_states:
-        newPara.add_state(state)
-    
+    [newPara.add_state(state) for state in new_states]
     return newPara
-
-    
-'''case State_9State_10:
-	if (event == Event.b1) {
-		callFunctionForAction("State_9_b1");
-		currentState = State.State_11State_10;
-	}
-
-    if (event == Event.b2) {
-		callFunctionForAction("State_10_b2");
-		currentState = State.State_9State_12;
-	}
-break;'''
-        #for child in childs: 
-            #print(child.to_string(1))
-
-    
-
-       # for child in childs:            
-        #    for child2 in child.states:
-          #      if child2.state in name:
-                    #print("child2"+child2.to_string(1))
-                    #print(child2.)
-
-                  #  print("child"+child.to_string(1))
-                    
-                  #  break
-                    #for tr in child2.transitions:
-                        #current_state.add_parallel_transition(tr)
-
-        #new_states.append(current_state)
-
-    #for state in new_states:
-        #print(state.to_string(1))
-
- #   for state in old_states:
-  #      all_states_names.remove(state.state)
-
-
-'''    for states1 in childs[0].states:
-        for i in range(1, len(childs)):
-            for states2 in childs[i].states:
-                current_state = State(states1.state+states2.state)
-                for trans1 in states1.transitions:
-                    for trans2 in states2.transitions:
-                        tr = trans1.paralellize_transitions(trans2)
-                        for trans in tr:
-                            current_state.add_transition(trans)
-                newPara.add_state(current_state)
-                all_states_names.append(states1.state + states2.state)
-
-                if states2 not in old_states:
-                    old_states.append(states2)
-
-            break
-        if states1 not in old_states:
-            old_states.append(states1)
-        break'''
-    
 
 all_states_names = []
 all_states_top_level = []
