@@ -1,6 +1,5 @@
 import xml.etree.ElementTree as ET
 
-
 class Action:
     def __init__(self, name, log=None):
         self.name = name
@@ -53,7 +52,7 @@ class Transition:
 
 class State:
     def __init__(self, current_state):
-        self.state = current_state
+        self.state_name = current_state
         self.transitions = []
         self.states = []
         self.onEntry = []
@@ -63,7 +62,7 @@ class State:
         state2.onEntry.extend(self.onEntry)
         state2.onExit.extend(self.onExit)
 
-        [state2.add_transition(transition)   for transition in self.transitions
+        [state2.add_transition(transition) for transition in self.transitions
          if transition.name_event not in state2.get_name_transitions()]
 
     def add_transition(self, transition):
@@ -73,12 +72,25 @@ class State:
         self.states.append(state)
 
     def append_transition(self,state):
-        if state.state in self.state: 
-            for tr in state.transitions:      
-                next_name = self.state.replace(state.state, tr.next_state) 
-                new_tr = Transition(tr.name_event,next_name)
-                new_tr.add_all_actions(tr.action_trigger)
-                self.add_transition(new_tr)
+        if state.state_name in self.state_name: 
+            self.onEntry.extend(state.onEntry)
+            self.onExit.extend(state.onExit)
+
+            for tr in state.transitions:                     
+                all_event = [tr.name_event for tr in self.transitions]
+                if tr.name_event in all_event:
+                    for trans in self.transitions:
+                        if trans.name_event==tr.name_event:
+                            trans.add_all_actions(tr.action_trigger)
+                            trans.next_state
+                            to_delete = longest_common_substring(self.state_name,trans.next_state)
+                            trans.next_state = trans.next_state.replace(to_delete,tr.next_state)
+                else:
+                    next_name = self.state_name.replace(state.state_name, tr.next_state) 
+                    new_tr = Transition(tr.name_event,next_name)
+                    new_tr.add_all_actions(tr.action_trigger)
+                    self.add_transition(new_tr)
+              #  for tr in self.:
 
     def get_name_transitions(self):
         return [transition.name_event for transition in self.transitions]
@@ -91,7 +103,7 @@ class State:
 
     def str_cases(self, pretty):
         str_case = ""
-        str_case += pretty_printer(pretty) + "case " + self.state + ":\n"
+        str_case += pretty_printer(pretty) + "case " + self.state_name + ":\n"
         pretty += 1
         for action in self.onEntry:
             str_case += action.to_string(pretty)
@@ -112,12 +124,11 @@ class State:
             for state in self.states:
                 self.merge(state)
                 str_state += state.to_string(pretty)
-            if self.state in all_states_names:
-                all_states_names.remove(self.state)
+            if self.state_name in all_states_names:
+                all_states_names.remove(self.state_name)
         else:
             str_state += self.str_cases(pretty)
         return str_state
-
 
 def get_enum(type_enum, _list):
     return type_enum + str(_list).replace("\'", "")\
@@ -153,7 +164,7 @@ def gen_transition(current_State, transition):
     log = transition.find("{http://www.w3.org/2005/07/scxml}log")
 
     name_transition = transition.tag.split("}")[1]
-    str_action = current_State.state
+    str_action = current_State.state_name
     str_log = None
     if log is not None:
         str_log = log.get("expr")
@@ -196,9 +207,9 @@ def initialize_parallel_states(childs):
     states_names = []
 
     for child in childs:
-        new_names = [states.state for states in child.states]
-        name_to_delete.extend([states.state for states in child.states])
-        name_to_delete.append(child.state)
+        new_names = [states.state_name for states in child.states]
+        name_to_delete.extend([states.state_name for states in child.states])
+        name_to_delete.append(child.state_name)
         if states_names:
             states_names = [old+new for old in states_names for new in new_names]
         else:
@@ -209,6 +220,20 @@ def initialize_parallel_states(childs):
     all_states_names.extend(states_names)
 
     return states_names
+
+def longest_common_substring(s1, s2):
+    m = [[0] * (1 + len(s2)) for i in range(1 + len(s1))]
+    longest, x_longest = 0, 0
+    for x in range(1, 1 + len(s1)):
+       for y in range(1, 1 + len(s2)):
+           if s1[x - 1] == s2[y - 1]:
+               m[x][y] = m[x - 1][y - 1] + 1
+               if m[x][y] > longest:
+                   longest = m[x][y]
+                   x_longest = x
+           else:
+               m[x][y] = 0
+    return s1[x_longest - longest: x_longest]
 
 def unparallelize(parallel_root):
     newPara = State(parallel_root.get("id"))
@@ -223,7 +248,7 @@ def unparallelize(parallel_root):
                 current_state.append_transition(state)
         new_states.append(current_state)
 
-    [newPara.add_state(state) for state in new_states]
+    newPara.states.extend(new_states)
     return newPara
 
 all_states_names = []
