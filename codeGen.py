@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 from utils import *
 from classes import *
 
-'''ccette fonction permet de générer les transitions pour un État à partir de son format XML'''
+'''cette fonction permet de générer les transitions pour un État à partir de son format XML'''
 def gen_transition(current_State, transition):
     event = transition.get("event")
     target = transition.get("target")
@@ -15,13 +15,18 @@ def gen_transition(current_State, transition):
         str_log = log.get("expr")
     if event is not None:
         str_action += "_" + event
-        action = Action(str_action, str_log)
+        action = Action(str_action, get_log(transition))
         current_transition = Transition(event, target, action)
         current_State.add_transition(current_transition)
         if event not in all_event:
             all_event.append(event)
-    else:
-        current_State.set_entry(str_action + "_" + name_transition, str_log)
+
+def get_log(xml_child):
+    log = xml_child.find("{http://www.w3.org/2005/07/scxml}log")
+    str_log = None
+    if log is not None:
+        str_log = log.get("expr")
+    return str_log
 
 '''génère un fichier Java à partir du fichier statique'''
 def generate_file_from_skeleton():
@@ -41,24 +46,33 @@ def generate_file_from_skeleton():
     open("FSM.java", "w").write(first)
 
 
-'''génère un état à partir du format XML'''
+'''génère un état à partir de son format XML'''
 def make_state(state):
     _id = state.get("id")
     current_state = State(_id)
     all_states_names.append(_id)
 
-    if state.tag.split("}")[1] == "parallel":
+    if xml_tag_equal_to(state, "parallel"):
         current_state.add_state(unparallelize(state))
     else:
         for transition in state:
             if transition.get("scenegeometry") is not None:
                 continue
-            if transition.tag.split("}")[1] == "state":
+            if xml_tag_equal_to(transition, "state"):
                 current_state.add_state(make_state(transition))
-            elif transition.tag.split("}")[1] == "transition":
+            elif xml_tag_equal_to(transition, "transition"):
                 gen_transition(current_state, transition)
+            
+        make_entry_exit(state, current_state)
 
     return current_state
+
+def make_entry_exit(xml_state, current_state):
+    for transition in state: 
+        if xml_tag_equal_to(transition, "onentry"):
+            current_state.add_entry(xml_state.get("id")+"_onentry", get_log(transition))
+        if xml_tag_equal_to(transition, "onexit"):
+            current_state.add_exit(xml_state.get("id")+"_onexit", get_log(transition))
 
 '''initialise les noms des différents états apparaissant dans un état paralélisé'''
 def initialize_parallel_states(childs):
@@ -83,7 +97,7 @@ def initialize_parallel_states(childs):
 '''remplace un État comprenant une liste d'états parallèles par un État comprenant une liste d'État'''
 def unparallelize(parallel_root):
     newPara = State(parallel_root.get("id"))
-    childs = [make_state(parallel) for parallel in parallel_root if parallel.tag.split("}")[1] == "state"]
+    childs = [make_state(parallel) for parallel in parallel_root if xml_tag_equal_to(parallel, "state")]
     states_names = initialize_parallel_states(childs)
 
     new_states = []
@@ -97,13 +111,13 @@ def unparallelize(parallel_root):
     newPara.states.extend(new_states)
     return newPara
 
-
+''''''
 if __name__ == '__main__':
     all_states_names = []
     all_states_top_level = []
     all_event = []
 
-    tree = ET.parse('complete.html')
+    tree = ET.parse('abitmoreadvanced.html')
     root = tree.getroot()
 
     for state in root:

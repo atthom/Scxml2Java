@@ -8,8 +8,6 @@ def get_enum(type_enum, _list):
 def pretty_printer(nb):
     return "\t"*nb
 
-
-
 '''récupère la plus grande chaîne commune entre 2 chaînes de caractères différentes
 utilisé seulement pour la parallélisation'''
 def longest_common_substring(s1, s2):
@@ -26,4 +24,5 @@ def longest_common_substring(s1, s2):
                m[x][y] = 0
     return s1[x_longest - longest: x_longest]
 
-
+def xml_tag_equal_to(xml, tag):
+    return xml.tag.split("}")[1] == tag

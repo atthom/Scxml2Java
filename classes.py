@@ -120,10 +120,10 @@ class State:
         return [transition.name_event for transition in self.transitions]
 
     '''ajoute une action d'entrée dans la liste des actions d'entrée'''
-    def set_entry(self, action, log=None):
+    def add_entry(self, action, log=None):
         self.onEntry.append(Action(action, log))
     '''ajoute une action sortie dans la liste des actions sorties'''
-    def set_exit(self, action, log=None):
+    def add_exit(self, action, log=None):
         self.onExit.append(Action(action, log))
 
     '''cette fonction transforme un état en code Java si il n'a pas d'état fils:
