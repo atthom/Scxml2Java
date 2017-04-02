@@ -1,6 +1,5 @@
 import xml.etree.ElementTree as ET
-from util import *
-
+from utils import *
 
 '''une action est un appel à une fonction. 
 Elle est définie par le nom de l'état courant ainsi que de l'événement en cours. 
@@ -65,8 +64,6 @@ class Transition:
         cond += pretty_printer(pretty) + "}\n"
         return cond
 
-
-
 '''c'est la classe principale de la FSM
 cette classe comprend un nom d'État, 
 une liste de transition,  une liste d'État fils, 
@@ -130,17 +127,20 @@ class State:
     def set_exit(self, action, log=None):
         self.onExit.append(Action(action, log))
 
-    ''''''
+    '''cette fonction transforme un état en code Java si il n'a pas d'état fils:
+    '''
     def str_cases(self, pretty):
         str_case = ""
+        '''le Switch/Case correspond à l'état courant'''
         str_case += pretty_printer(pretty) + "case " + self.state_name + ":\n"
         pretty += 1
+        '''ajoute toutes les actions provenant de la liste en entrée'''
         for action in self.onEntry:
             str_case += action.to_string(pretty)
-
+        '''ajoute toutes les transitions  provenant de la liste transitions'''
         for condition in self.transitions:
             str_case += condition.to_string(pretty)
-
+        '''ajoute toutes les actions provenant de la liste en sortie'''
         for action in self.onExit:
             str_case += action.to_string(pretty)
         pretty -= 1
@@ -148,8 +148,10 @@ class State:
 
         return str_case
 
+    '''cette fonction transforme un État en code Java'''
     def to_string(self, pretty):
         str_state = ""
+        '''si l'État à des états fils, on procède à l'aplatissement'''
         if self.states:
             for state in self.states:
                 self.flattening(state)
@@ -160,7 +162,7 @@ class State:
             str_state += self.str_cases(pretty)
         return str_state
 
-
+'''ccette fonction permet de générer les transitions pour un État à partir de son format XML'''
 def gen_transition(current_State, transition):
     event = transition.get("event")
     target = transition.get("target")
@@ -181,24 +183,16 @@ def gen_transition(current_State, transition):
     else:
         current_State.set_entry(str_action + "_" + name_transition, str_log)
 
-def get_enum(type_enum, _list):
-    return type_enum + str(_list).replace("\'", "")\
-        .replace("[", "{")\
-        .replace("]", "}")
-
-def pretty_printer(nb):
-    tab = ""
-    for i in range(0, nb):
-        tab += "\t"
-    return tab
-
+'''génère un fichier Java à partir du fichier statique'''
 def generate_file_from_skeleton():
     first = open("static_begin.protojava", "r").read()
     pretty = 3
 
+    '''écrit tous les états accessibles au plus grand niveau'''
     for state in all_states_top_level:
         first += state.to_string(pretty)
 
+    '''termine switch et remplace une liste  d'événements et d'états'''
     first += pretty_printer(2) + "}\n" + pretty_printer(1) + "}\n}\n"
     first = first.replace("Event {}", get_enum("Event ", all_event))
     first = first.replace("State {}", get_enum("State ", all_states_names))
@@ -206,21 +200,9 @@ def generate_file_from_skeleton():
 
     open("FSM.java", "w").write(first)
 
-def longest_common_substring(s1, s2):
-    m = [[0] * (1 + len(s2)) for i in range(1 + len(s1))]
-    longest, x_longest = 0, 0
-    for x in range(1, 1 + len(s1)):
-       for y in range(1, 1 + len(s2)):
-           if s1[x - 1] == s2[y - 1]:
-               m[x][y] = m[x - 1][y - 1] + 1
-               if m[x][y] > longest:
-                   longest = m[x][y]
-                   x_longest = x
-           else:
-               m[x][y] = 0
-    return s1[x_longest - longest: x_longest]
 
-def make_transitions(state):
+'''génère un état à partir du format XML'''
+def make_state(state):
     _id = state.get("id")
     current_state = State(_id)
     all_states_names.append(_id)
@@ -232,17 +214,13 @@ def make_transitions(state):
             if transition.get("scenegeometry") is not None:
                 continue
             if transition.tag.split("}")[1] == "state":
-                current_state.add_state(make_transitions(transition))
+                current_state.add_state(make_state(transition))
             elif transition.tag.split("}")[1] == "transition":
                 gen_transition(current_state, transition)
 
     return current_state
 
-def make_state(xml_root):
-    for state in xml_root:
-        if state.get("id") is not None:
-            all_states_top_level.append(make_transitions(state))
-
+'''initialise les noms des différents états apparaissant dans un état paralélisé'''
 def initialize_parallel_states(childs):
     name_to_delete = []
     states_names = []
@@ -262,9 +240,10 @@ def initialize_parallel_states(childs):
 
     return states_names
 
+'''remplace un État comprenant une liste d'états parallèles par un État comprenant une liste d'État'''
 def unparallelize(parallel_root):
     newPara = State(parallel_root.get("id"))
-    childs = [make_transitions(parallel) for parallel in parallel_root if parallel.tag.split("}")[1] == "state"]
+    childs = [make_state(parallel) for parallel in parallel_root if parallel.tag.split("}")[1] == "state"]
     states_names = initialize_parallel_states(childs)
 
     new_states = []
@@ -287,5 +266,8 @@ if __name__ == '__main__':
     tree = ET.parse('complete.html')
     root = tree.getroot()
 
-    make_state(root)
+    for state in root:
+        if state.get("id") is not None:
+            all_states_top_level.append(make_state(state))
+
     generate_file_from_skeleton()
