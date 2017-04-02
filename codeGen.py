@@ -1,10 +1,16 @@
 import xml.etree.ElementTree as ET
+from util import *
 
+
+'''une action est un appel à une fonction. 
+Elle est définie par le nom de l'état courant ainsi que de l'événement en cours. 
+Il est possible  d'ajouter un message de log'''
 class Action:
     def __init__(self, name, log=None):
         self.name = name
         self.log = log
 
+    '''la fonction merge permet de factoriser les actions survenant même moment'''
     def merge(self, action):
         self.name += action.name
         if action.log is not None:
@@ -13,13 +19,15 @@ class Action:
             else:
                 self.log += "\n" + action.log
 
+    '''la fonction to_string permet de convertir l'action en fonction java'''
     def to_string(self, pretty):
         if self.log is None:
             return pretty_printer(pretty) + "callFunctionForAction(\"" + self.name + "\");\n"
         else:
             return pretty_printer(pretty) + "callFunctionForActionWithLog(\"" + self.name + "\",\"" + self.log + "\");\n"
 
-
+'''une transition est un événement survenant entre l'état courant et un autre état.
+Une transition est définie en fonction d'un événement et de l'état de transition ainsi que les appels de fonctions à déclencher.'''
 class Transition:
     def __init__(self, name_event, next_state, action_trigger=None):
         self.name_event = name_event
@@ -27,16 +35,24 @@ class Transition:
         self.action_trigger = []
         if action_trigger is not None:
                 self.action_trigger.append(action_trigger)
-            
+    
+    '''ajoute une action à la liste des actions'''
     def add_action(self, action):
         self.action_trigger.append(action)
-
+    '''ajoute une liste d'actions à la liste des actions'''
     def add_all_actions(self,list_actions):
         self.action_trigger.extend(list_actions)
-    
-    def add_state(self, state):
-        self.next_state.append(state)  
 
+    ''' cette fonction permet de fusionner 2 transitions en connaissant l'autre transition et le nom de son état parent'''
+    '''cette fonction n'est utilisée que pour paralléliser les états entre eux '''
+    def merge(self, transition, name):
+        self.add_all_actions(transition.action_trigger)
+        to_delete = longest_common_substring(name,self.next_state)
+        self.next_state = self.next_state.replace(to_delete,transition.next_state)
+
+    '''cette fonction transforme une transition en code java :
+    suivant une condition  sur l'événement déclenché, la liste des actions est ajoutée
+    et l'état courant est redéfini en fonction de la transition'''
     def to_string(self, pretty):
         cond = pretty_printer(pretty) + "if (event == Event." + self.name_event + ") {\n"
         pretty += 1
@@ -50,6 +66,11 @@ class Transition:
         return cond
 
 
+
+'''c'est la classe principale de la FSM
+cette classe comprend un nom d'État, 
+une liste de transition,  une liste d'État fils, 
+une liste  d'actions en entrée,  une liste d'actions en sortie'''
 class State:
     def __init__(self, current_state):
         self.state_name = current_state
@@ -58,49 +79,58 @@ class State:
         self.onEntry = []
         self.onExit = []
 
-    def merge(self, state2):
-        state2.onEntry.extend(self.onEntry)
-        state2.onExit.extend(self.onExit)
 
-        [state2.add_transition(transition) for transition in self.transitions
-         if transition.name_event not in state2.get_name_transitions()]
+    '''cette fonction permet d'aplatir un état vers ses états fils :
+    ici, on transfère  toutes les actions en entrée et en sortie vers l'État fils
+    puis on transfère toutes les transitions de l'État part vers l'État fils 
+    seulement si l'État fils n'a pas une transition avec le même événement'''
+    def flattening(self, child_state):
+        child_state.onEntry.extend(self.onEntry)
+        child_state.onExit.extend(self.onExit)
 
+        [child_state.add_transition(transition) for transition in self.transitions
+         if transition.name_event not in child_state.get_name_transitions()]
+
+    '''on ajoute une transition à la liste des transitions'''
     def add_transition(self, transition):
         self.transitions.append(transition)
-
+    '''on ajoute un État à la liste des états fils'''
     def add_state(self, state):
         self.states.append(state)
 
+    '''fonction qui permet d'ajouter des transitions entre un État parallèle et un autre État'''
     def append_transition(self,state):
+        '''on effectue la transition seulement si l'état parallèle va inclure l'état donné en argument'''
         if state.state_name in self.state_name: 
+            '''on ajoute les entrées et sorties correspondantes'''
             self.onEntry.extend(state.onEntry)
             self.onExit.extend(state.onExit)
 
             for tr in state.transitions:                     
-                all_event = [tr.name_event for tr in self.transitions]
+                all_event = self.get_name_transitions()
+                '''pour chaque transition on vérifie si l'État parallèle contient déjà  un événement de ce type'''
                 if tr.name_event in all_event:
-                    for trans in self.transitions:
-                        if trans.name_event==tr.name_event:
-                            trans.add_all_actions(tr.action_trigger)
-                            trans.next_state
-                            to_delete = longest_common_substring(self.state_name,trans.next_state)
-                            trans.next_state = trans.next_state.replace(to_delete,tr.next_state)
+                    '''si oui,  on va chercher à fusionner les transitions'''
+                    [trans.merge(tr,self.state_name) for trans in self.transitions if trans.name_event==tr.name_event]
                 else:
+                    '''sinon, on créer une nouvelle transition'''
                     next_name = self.state_name.replace(state.state_name, tr.next_state) 
                     new_tr = Transition(tr.name_event,next_name)
                     new_tr.add_all_actions(tr.action_trigger)
                     self.add_transition(new_tr)
-              #  for tr in self.:
-
+    
+    '''retourne la liste des événements inclues dans cet état'''
     def get_name_transitions(self):
         return [transition.name_event for transition in self.transitions]
 
+    '''ajoute une action d'entrée dans la liste des actions d'entrée'''
     def set_entry(self, action, log=None):
         self.onEntry.append(Action(action, log))
-
+    '''ajoute une action sortie dans la liste des actions sorties'''
     def set_exit(self, action, log=None):
         self.onExit.append(Action(action, log))
 
+    ''''''
     def str_cases(self, pretty):
         str_case = ""
         str_case += pretty_printer(pretty) + "case " + self.state_name + ":\n"
@@ -122,40 +152,13 @@ class State:
         str_state = ""
         if self.states:
             for state in self.states:
-                self.merge(state)
+                self.flattening(state)
                 str_state += state.to_string(pretty)
             if self.state_name in all_states_names:
                 all_states_names.remove(self.state_name)
         else:
             str_state += self.str_cases(pretty)
         return str_state
-
-def get_enum(type_enum, _list):
-    return type_enum + str(_list).replace("\'", "")\
-        .replace("[", "{")\
-        .replace("]", "}")
-
-
-def pretty_printer(nb):
-    tab = ""
-    for i in range(0, nb):
-        tab += "\t"
-    return tab
-
-
-def generate_file_from_skeleton():
-    first = open("static_begin.protojava", "r").read()
-    pretty = 3
-
-    for state in all_states_top_level:
-        first += state.to_string(pretty)
-
-    first += pretty_printer(2) + "}\n" + pretty_printer(1) + "}\n}\n"
-    first = first.replace("Event {}", get_enum("Event ", all_event))
-    first = first.replace("State {}", get_enum("State ", all_states_names))
-    first = first.replace("State.;", "State." + all_states_names[0] + ";")
-
-    open("FSM.java", "w").write(first)
 
 
 def gen_transition(current_State, transition):
@@ -178,6 +181,44 @@ def gen_transition(current_State, transition):
     else:
         current_State.set_entry(str_action + "_" + name_transition, str_log)
 
+def get_enum(type_enum, _list):
+    return type_enum + str(_list).replace("\'", "")\
+        .replace("[", "{")\
+        .replace("]", "}")
+
+def pretty_printer(nb):
+    tab = ""
+    for i in range(0, nb):
+        tab += "\t"
+    return tab
+
+def generate_file_from_skeleton():
+    first = open("static_begin.protojava", "r").read()
+    pretty = 3
+
+    for state in all_states_top_level:
+        first += state.to_string(pretty)
+
+    first += pretty_printer(2) + "}\n" + pretty_printer(1) + "}\n}\n"
+    first = first.replace("Event {}", get_enum("Event ", all_event))
+    first = first.replace("State {}", get_enum("State ", all_states_names))
+    first = first.replace("State.;", "State." + all_states_names[0] + ";")
+
+    open("FSM.java", "w").write(first)
+
+def longest_common_substring(s1, s2):
+    m = [[0] * (1 + len(s2)) for i in range(1 + len(s1))]
+    longest, x_longest = 0, 0
+    for x in range(1, 1 + len(s1)):
+       for y in range(1, 1 + len(s2)):
+           if s1[x - 1] == s2[y - 1]:
+               m[x][y] = m[x - 1][y - 1] + 1
+               if m[x][y] > longest:
+                   longest = m[x][y]
+                   x_longest = x
+           else:
+               m[x][y] = 0
+    return s1[x_longest - longest: x_longest]
 
 def make_transitions(state):
     _id = state.get("id")
@@ -221,20 +262,6 @@ def initialize_parallel_states(childs):
 
     return states_names
 
-def longest_common_substring(s1, s2):
-    m = [[0] * (1 + len(s2)) for i in range(1 + len(s1))]
-    longest, x_longest = 0, 0
-    for x in range(1, 1 + len(s1)):
-       for y in range(1, 1 + len(s2)):
-           if s1[x - 1] == s2[y - 1]:
-               m[x][y] = m[x - 1][y - 1] + 1
-               if m[x][y] > longest:
-                   longest = m[x][y]
-                   x_longest = x
-           else:
-               m[x][y] = 0
-    return s1[x_longest - longest: x_longest]
-
 def unparallelize(parallel_root):
     newPara = State(parallel_root.get("id"))
     childs = [make_transitions(parallel) for parallel in parallel_root if parallel.tag.split("}")[1] == "state"]
@@ -251,12 +278,14 @@ def unparallelize(parallel_root):
     newPara.states.extend(new_states)
     return newPara
 
-all_states_names = []
-all_states_top_level = []
-all_event = []
 
-tree = ET.parse('complete.html')
-root = tree.getroot()
+if __name__ == '__main__':
+    all_states_names = []
+    all_states_top_level = []
+    all_event = []
 
-make_state(root)
-generate_file_from_skeleton()
+    tree = ET.parse('complete.html')
+    root = tree.getroot()
+
+    make_state(root)
+    generate_file_from_skeleton()
