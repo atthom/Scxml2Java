@@ -6,13 +6,10 @@ from classes import *
 def gen_transition(current_State, transition):
     event = transition.get("event")
     target = transition.get("target")
-    log = transition.find("{http://www.w3.org/2005/07/scxml}log")
 
     name_transition = transition.tag.split("}")[1]
     str_action = current_State.state_name
-    str_log = None
-    if log is not None:
-        str_log = log.get("expr")
+
     if event is not None:
         str_action += "_" + event
         action = Action(str_action, get_log(transition))
@@ -23,6 +20,7 @@ def gen_transition(current_State, transition):
 
 def get_log(xml_child):
     log = xml_child.find("{http://www.w3.org/2005/07/scxml}log")
+
     str_log = None
     if log is not None:
         str_log = log.get("expr")
@@ -62,7 +60,7 @@ def make_state(state):
                 current_state.add_state(make_state(transition))
             elif xml_tag_equal_to(transition, "transition"):
                 gen_transition(current_state, transition)
-            
+
         make_entry_exit(state, current_state)
 
     return current_state
@@ -117,7 +115,7 @@ if __name__ == '__main__':
     all_states_top_level = []
     all_event = []
 
-    tree = ET.parse('abitmoreadvanced.html')
+    tree = ET.parse('entry_exit.html')
     root = tree.getroot()
 
     for state in root:
