@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" binding="early" name="recursive_with_on_entry" qt:editorversion="4.2.1" xmlns:qt="http://www.qt.io/2015/02/scxml-ext" initial="State_1">
+    <qt:editorinfo initialGeometry="155.52;327.71;-20;-20;40;40"/>
+    <state id="State_1">
+        <qt:editorinfo geometry="356.05;238.71;-84.16;-50;489.16;278" scenegeometry="356.05;238.71;271.89;188.71;489.16;278"/>
+        <state id="State_2">
+            <qt:editorinfo geometry="81.86;73.50;-145;-50;239;131" scenegeometry="437.91;312.21;292.91;262.21;239;131"/>
+            <onentry>
+                <log expr="OnEntry du State2"/>
+            </onentry>
+            <onexit>
+                <log expr="OnExit du state2"/>
+            </onexit>
+            <transition type="external" event="B1" target="State_2">
+                <qt:editorinfo endTargetFactors="86.47;59.14"/>
+            </transition>
+            <transition type="external" event="B2" target="State_1">
+                <qt:editorinfo localGeometry="0;-210.05;178.23;-210.05" endTargetFactors="65.25;5.78"/>
+            </transition>
+        </state>
+        <onentry>
+            <log expr="OnEntry du State1"/>
+            <log expr="OnExit du State 1"/>
+        </onentry>
+    </state>
+</scxml>
