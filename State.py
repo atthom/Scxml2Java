@@ -22,14 +22,15 @@ class State:
     def flattening(self, child_state):
         child_state.onEntry = self.onEntry + child_state.onEntry
         child_state.onExit  = child_state.onExit + self.onExit
-        print(child_state.onEntry[0].to_string(1))
-        print(child_state.onEntry[1].to_string(1))
 
         for transition in child_state.transitions:
             if transition.next_state == self.state_name:
                 transition.next_state = self.states[0].state_name
 
         for transition in self.transitions:
+            if transition.next_state == self.state_name:
+                transition.next_state = self.states[0].state_name
+
             if transition.name_event not in child_state.get_name_transitions():
                 child_state.add_transition(transition)
 
