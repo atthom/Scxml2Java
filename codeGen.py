@@ -22,7 +22,6 @@ def gen_transition(current_State, transition):
 
 def get_log(xml_child):
     log = xml_child.find("{http://www.w3.org/2005/07/scxml}log")
-
     str_log = None
     if log is not None:
         str_log = log.get("expr")
@@ -68,7 +67,7 @@ def make_state(state):
     return current_state
 
 def make_entry_exit(xml_state, current_state):
-    for transition in state: 
+    for transition in xml_state: 
         if xml_tag_equal_to(transition, "onentry"):
             current_state.add_entry(xml_state.get("id")+"_onentry", get_log(transition))
         if xml_tag_equal_to(transition, "onexit"):

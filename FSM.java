@@ -2,9 +2,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
-enum Event {b1, b2}
+enum Event {B1, B2, B3}
 
-enum State {State_1_1, State_6, State_7, State_9, State_11, State_8, State_10, State_12}
+enum State {State_2}
 
 
 class FSM {
@@ -14,7 +14,7 @@ class FSM {
 
 
     public FSM(Object context) {
-        this.currentState = State.State_1_1;
+        this.currentState = State.State_2;
         this.functions = new HashMap<>();
         this.context = context;
     }
@@ -42,57 +42,23 @@ class FSM {
 
     void activate(Event event) {
 		switch (currentState) {
-			case State_1_1:
-				if (event == Event.b1) {
-					callFunctionForAction("State_1_1_b1");
-					currentState = State.State_6;
+			case State_2:
+				callFunctionForActionWithLog("State_1_onentry","OnEntry du State1");
+				callFunctionForActionWithLog("State_2_onentry","OnEntry du State2");
+				if (event == Event.B1) {
+					callFunctionForActionWithLog("State_2_B1","execute B1");
+					currentState = State.State_2;
 				}
-			break;
-			case State_6:
-				if (event == Event.b1) {
-					callFunctionForAction("State_1_b1");
-					currentState = State.Parallel_1;
+				if (event == Event.B2) {
+					callFunctionForActionWithLog("State_2_B2","execute B2");
+					currentState = State.State_2;
 				}
-			break;
-			case State_9State_10:
-				if (event == Event.b1) {
-					callFunctionForAction("State_9_b1");
-					currentState = State.State_11State_10;
+				if (event == Event.B3) {
+					callFunctionForActionWithLog("State_1_B3","execute B3");
+					currentState = State.State_1;
 				}
-				if (event == Event.b2) {
-					callFunctionForAction("State_10_b2");
-					currentState = State.State_9State_12;
-				}
-			break;
-			case State_9State_12:
-				if (event == Event.b1) {
-					callFunctionForAction("State_9_b1");
-					currentState = State.State_11State_12;
-				}
-				if (event == Event.b1) {
-					callFunctionForAction("State_12_b1");
-					currentState = State.State_9State_10;
-				}
-			break;
-			case State_11State_10:
-				if (event == Event.b2) {
-					callFunctionForAction("State_11_b2");
-					currentState = State.State_9State_10;
-				}
-				if (event == Event.b2) {
-					callFunctionForAction("State_10_b2");
-					currentState = State.State_11State_12;
-				}
-			break;
-			case State_11State_12:
-				if (event == Event.b2) {
-					callFunctionForAction("State_11_b2");
-					currentState = State.State_9State_12;
-				}
-				if (event == Event.b1) {
-					callFunctionForAction("State_12_b1");
-					currentState = State.State_11State_10;
-				}
+				callFunctionForActionWithLog("State_2_onexit","OnExit du state2");
+				callFunctionForActionWithLog("State_1_onexit","OnExit du State 1");
 			break;
 		}
 	}

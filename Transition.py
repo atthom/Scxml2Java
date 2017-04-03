@@ -8,7 +8,7 @@ class Transition:
         self.next_state = next_state
         self.action_trigger = []
         if action_trigger is not None:
-                self.action_trigger.append(action_trigger)
+            self.action_trigger.append(action_trigger)
     
     '''ajoute une action à la liste des actions'''
     def add_action(self, action):

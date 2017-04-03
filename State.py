@@ -20,8 +20,10 @@ class State:
     puis on transfère toutes les transitions de l'État part vers l'État fils 
     seulement si l'État fils n'a pas une transition avec le même événement'''
     def flattening(self, child_state):
-        child_state.onEntry.extend(self.onEntry)
-        child_state.onExit.extend(self.onExit)
+        child_state.onEntry = self.onEntry + child_state.onEntry
+        child_state.onExit  = child_state.onExit + self.onExit
+        print(child_state.onEntry[0].to_string(1))
+        print(child_state.onEntry[1].to_string(1))
 
         for transition in child_state.transitions:
             if transition.next_state == self.state_name:
