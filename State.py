@@ -1,67 +1,7 @@
 from utils import *
 
-'''une action est un appel à une fonction. 
-Elle est définie par le nom de l'état courant ainsi que de l'événement en cours. 
-Il est possible  d'ajouter un message de log'''
-class Action:
-    def __init__(self, name, log=None):
-        self.name = name
-        self.log = log
-
-    '''la fonction merge permet de factoriser les actions survenant même moment'''
-    def merge(self, action):
-        self.name += action.name
-        if action.log is not None:
-            if self.log is None:
-                self.log = action.log
-            else:
-                self.log += "\n" + action.log
-
-    '''la fonction to_string permet de convertir l'action en fonction java'''
-    def to_string(self, pretty):
-        if self.log is None:
-            return pretty_printer(pretty) + "callFunctionForAction(\"" + self.name + "\");\n"
-        else:
-            return pretty_printer(pretty) + "callFunctionForActionWithLog(\"" + self.name + "\",\"" + self.log + "\");\n"
-
-'''une transition est un événement survenant entre l'état courant et un autre état.
-Une transition est définie en fonction d'un événement et de l'état de transition ainsi que les appels de fonctions à déclencher.'''
-class Transition:
-    def __init__(self, name_event, next_state, action_trigger=None):
-        self.name_event = name_event
-        self.next_state = next_state
-        self.action_trigger = []
-        if action_trigger is not None:
-                self.action_trigger.append(action_trigger)
-    
-    '''ajoute une action à la liste des actions'''
-    def add_action(self, action):
-        self.action_trigger.append(action)
-    '''ajoute une liste d'actions à la liste des actions'''
-    def add_all_actions(self,list_actions):
-        self.action_trigger.extend(list_actions)
-
-    ''' cette fonction permet de fusionner 2 transitions en connaissant l'autre transition et le nom de son état parent'''
-    '''cette fonction n'est utilisée que pour paralléliser les états entre eux '''
-    def merge(self, transition, name):
-        self.add_all_actions(transition.action_trigger)
-        to_delete = longest_common_substring(name,self.next_state)
-        self.next_state = self.next_state.replace(to_delete,transition.next_state)
-
-    '''cette fonction transforme une transition en code java :
-    suivant une condition  sur l'événement déclenché, la liste des actions est ajoutée
-    et l'état courant est redéfini en fonction de la transition'''
-    def to_string(self, pretty):
-        cond = pretty_printer(pretty) + "if (event == Event." + self.name_event + ") {\n"
-        pretty += 1
-
-        for action in self.action_trigger:
-            cond += action.to_string(pretty)
-
-        cond += pretty_printer(pretty) + "currentState = State." + self.next_state + ";\n"
-        pretty -= 1
-        cond += pretty_printer(pretty) + "}\n"
-        return cond
+from Action import *
+from Transition import *
 
 '''c'est la classe principale de la FSM
 cette classe comprend un nom d'État, 
@@ -75,7 +15,6 @@ class State:
         self.onEntry = []
         self.onExit = []
 
-
     '''cette fonction permet d'aplatir un état vers ses états fils :
     ici, on transfère  toutes les actions en entrée et en sortie vers l'État fils
     puis on transfère toutes les transitions de l'État part vers l'État fils 
@@ -84,8 +23,13 @@ class State:
         child_state.onEntry.extend(self.onEntry)
         child_state.onExit.extend(self.onExit)
 
-        [child_state.add_transition(transition) for transition in self.transitions
-         if transition.name_event not in child_state.get_name_transitions()]
+        for transition in child_state.transitions:
+            if transition.next_state == self.state_name:
+                transition.next_state = self.states[0].state_name
+
+        for transition in self.transitions:
+            if transition.name_event not in child_state.get_name_transitions():
+                child_state.add_transition(transition)
 
     '''on ajoute une transition à la liste des transitions'''
     def add_transition(self, transition):

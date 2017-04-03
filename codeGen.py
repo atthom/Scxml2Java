@@ -1,6 +1,8 @@
 import xml.etree.ElementTree as ET
 from utils import *
-from classes import *
+from Action import *
+from Transition import *
+from State import *
 
 '''cette fonction permet de générer les transitions pour un État à partir de son format XML'''
 def gen_transition(current_State, transition):
