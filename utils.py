@@ -4,6 +4,25 @@ def get_enum(type_enum, _list):
         .replace("[", "{")\
         .replace("]", "}")
 
+
+'''génère un fichier Java à partir du fichier statique'''
+def generate_file_from_skeleton(all_states_top_level, all_states_names, all_event):
+    first = open("static_begin.protojava", "r").read()
+    pretty = 3
+
+    '''écrit tous les états accessibles au plus grand niveau'''
+    for state in all_states_top_level:
+        first += state.to_string(pretty, all_states_names)
+
+    '''termine switch et remplace une liste  d'événements et d'états'''
+    first += pretty_printer(2) + "}\n" + pretty_printer(1) + "}\n}\n"
+    first = first.replace("Event {}", get_enum("Event ", all_event))
+    first = first.replace("State {}", get_enum("State ", all_states_names))
+    first = first.replace("State.;", "State." + all_states_names[0] + ";")
+
+    open("FSM.java", "w").write(first)
+
+
 '''renvoie un nombre arbitraire de tabulation pour un bel affichage du code'''
 def pretty_printer(nb):
     return "\t"*nb

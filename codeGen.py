@@ -27,23 +27,6 @@ def get_log(xml_child):
         str_log = log.get("expr")
     return str_log
 
-'''génère un fichier Java à partir du fichier statique'''
-def generate_file_from_skeleton():
-    first = open("static_begin.protojava", "r").read()
-    pretty = 3
-
-    '''écrit tous les états accessibles au plus grand niveau'''
-    for state in all_states_top_level:
-        first += state.to_string(pretty, all_states_names)
-
-    '''termine switch et remplace une liste  d'événements et d'états'''
-    first += pretty_printer(2) + "}\n" + pretty_printer(1) + "}\n}\n"
-    first = first.replace("Event {}", get_enum("Event ", all_event))
-    first = first.replace("State {}", get_enum("State ", all_states_names))
-    first = first.replace("State.;", "State." + all_states_names[0] + ";")
-
-    open("FSM.java", "w").write(first)
-
 
 '''génère un état à partir de son format XML'''
 def make_state(state):
@@ -103,18 +86,22 @@ def initialize_parallel_states(childs):
 
 '''remplace un État comprenant une liste d'états parallèles par un État comprenant une liste d'État'''
 def unparallelize(parallel_root):
+    '''créer un nouvel état qui va contenir tous les états parallèles'''
     newPara = State(parallel_root.get("id"))
+    '''on définit la liste des états à partir du XML, ils ne sont pas encore paralysés'''
     childs = [make_state(parallel) for parallel in parallel_root if xml_tag_equal_to(parallel, "state")]
+    '''on définit le nom que les états parallélisé auront après le traitement'''
     states_names = initialize_parallel_states(childs)
 
     new_states = []
     for name in states_names:
+        '''pour chaque nom d'états, on créer un état et on ajoute les transitions de tous les états qui lui appartiennent'''
         current_state = State(name)
         for parallel_state in childs:            
             for state in parallel_state.states: 
                 current_state.append_transition(state)
         new_states.append(current_state)
-
+    '''on ajoute cet état à l'état racine des états parallèles'''
     newPara.states.extend(new_states)
     return newPara
 
@@ -124,7 +111,7 @@ if __name__ == '__main__':
     all_states_top_level = []
     all_event = []
 
-    tree = ET.parse('entry_exit.html')
+    tree = ET.parse('complete.html')
     root = tree.getroot()
     '''On parse chaque state du plus haut niveau'''
     for state in root:
@@ -132,4 +119,4 @@ if __name__ == '__main__':
             all_states_top_level.append(make_state(state))
 
     '''on génère le fichier java à partir du squelette statique'''
-    generate_file_from_skeleton()
+    generate_file_from_skeleton(all_states_top_level, all_states_names, all_event)

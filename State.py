@@ -50,7 +50,7 @@ class State:
             '''on ajoute les entrées et sorties correspondantes'''
             self.onEntry.extend(state.onEntry)
             self.onExit.extend(state.onExit)
-
+            self.states.extend(state.states)
             for tr in state.transitions:                     
                 all_event = self.get_name_transitions()
                 '''pour chaque transition on vérifie si l'État parallèle contient déjà  un événement de ce type'''
