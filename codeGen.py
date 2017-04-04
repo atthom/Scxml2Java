@@ -78,19 +78,27 @@ def initialize_parallel_states(childs):
     name_to_delete = []
     states_names = []
 
+    '''pour chaque états fils de l'état parallèle :'''
     for child in childs:
+        '''les nouveaux nom sont les  états fils du fils de l'état parallèle'''
         new_names = [states.state_name for states in child.states]
+        '''on supprime les anciens noms'''
         name_to_delete.extend([states.state_name for states in child.states])
+        '''on supprime le parent de ces états car il ne dois pas apparaitre dans la FSM'''
         name_to_delete.append(child.state_name)
+        '''si la liste des états n'est pas vide, on réécrit le nom des états en fonction des anciens et des nouveaux'''
         if states_names:
             states_names = [old+new for old in states_names for new in new_names]
         else:
+            '''sinon on ajoute juste les nouveaux noms'''
             states_names = [names for names in new_names]
 
+    '''on redéfinie la liste des états sans les mots à enlever'''
     global all_states_names
     all_states_names = [name for name in all_states_names if name not in name_to_delete]
     all_states_names.extend(states_names)
-
+ 
+    '''On retourne la liste des états'''
     return states_names
 
 '''remplace un État comprenant une liste d'états parallèles par un État comprenant une liste d'État'''
@@ -110,7 +118,7 @@ def unparallelize(parallel_root):
     newPara.states.extend(new_states)
     return newPara
 
-''''''
+'''Début du script'''
 if __name__ == '__main__':
     all_states_names = []
     all_states_top_level = []
@@ -118,9 +126,10 @@ if __name__ == '__main__':
 
     tree = ET.parse('entry_exit.html')
     root = tree.getroot()
-
+    '''On parse chaque state du plus haut niveau'''
     for state in root:
         if state.get("id") is not None:
             all_states_top_level.append(make_state(state))
 
+    '''on génère le fichier java à partir du squelette statique'''
     generate_file_from_skeleton()

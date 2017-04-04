@@ -16,21 +16,23 @@ class State:
         self.onExit = []
 
     '''cette fonction permet d'aplatir un état vers ses états fils :
-    ici, on transfère  toutes les actions en entrée et en sortie vers l'État fils
     puis on transfère toutes les transitions de l'État part vers l'État fils 
     seulement si l'État fils n'a pas une transition avec le même événement'''
     def flattening(self, child_state):
+        '''ici, on transfère  toutes les actions en entrée et en sortie vers l'État fils (dans le bon ordre)'''
         child_state.onEntry = self.onEntry + child_state.onEntry
         child_state.onExit  = child_state.onExit + self.onExit
 
+        '''Si une transition chez le fils, pointe vers le parent, on le redirige vers son premier fils'''
         for transition in child_state.transitions:
             if transition.next_state == self.state_name:
-                transition.next_state = self.states[0].state_name
-
+                transition.next_state = self.states[0].state_name        
+        '''Si une transition chez le parent, pointe vers lui même, on le redirige vers son premier fils'''
         for transition in self.transitions:
             if transition.next_state == self.state_name:
                 transition.next_state = self.states[0].state_name
-
+            '''on transfère toutes les transitions de l'État part vers l'État fils
+            seulement si l'évènement n'exise pas déja !'''
             if transition.name_event not in child_state.get_name_transitions():
                 child_state.add_transition(transition)
 
@@ -73,8 +75,7 @@ class State:
     def add_exit(self, action, log=None):
         self.onExit.append(Action(action, log))
 
-    '''cette fonction transforme un état en code Java si il n'a pas d'état fils:
-    '''
+    '''cette fonction transforme un état en code Java si il n'a pas d'état fils: '''
     def str_cases(self, pretty):
         str_case = ""
         '''le Switch/Case correspond à l'état courant'''
@@ -102,6 +103,8 @@ class State:
             for state in self.states:
                 self.flattening(state)
                 str_state += state.to_string(pretty, all_states_names)
+            
+            '''On enleve l'état parent de la liste des états'''
             if self.state_name in all_states_names:
                 all_states_names.remove(self.state_name)
         else:
