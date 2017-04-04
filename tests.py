@@ -8,7 +8,6 @@ class TestTransition(unittest.TestCase):
     def test_to_string(self):
         T1 = Transition("B1", "State1")
         self.assertEqual(T1.to_string(0), "if (event == Event.B1) {\n\tcurrentState = State.State1;\n}\n")
-    
 
     def test_to_string_with_action(self):
         T1 = Transition("B1", "State1")
@@ -16,7 +15,6 @@ class TestTransition(unittest.TestCase):
         T1.add_action(A1)
         value = "if (event == Event.B1) {\n\tcallFunctionForActionWithLog(\"State_1_B1\",\"Ceci est un test avec log\");\n\tcurrentState = State.State1;\n}\n"
         self.assertEqual(T1.to_string(0), value)
-    
 
 class TestAction(unittest.TestCase):
     def test_to_string_with_log(self):
