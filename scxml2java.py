@@ -128,5 +128,4 @@ if __name__ == '__main__':
     str_java = generate_file_from_skeleton(all_states_top_level, all_states_names, all_event)
     
     open(envir[1]+"/FSM.java", "w").write(str_java)
-    str_log = "Fichier FSM.java généré dans le dosser :\n\t"
-    print((str_log.decode('utf8') + envir[1]))
+    print("Fichier FSM.java généré dans le dosser :\n\t" + envir[1])

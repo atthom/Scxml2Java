@@ -50,7 +50,11 @@ Il y a plusieurs fichiers nécessaires pour lancer le code java :
 Python3 tests.py [nom_fichier]
 ```
 
-> gènère un fichier FSM.java comprenant la machine à état.
+Gènère un fichier FSM.java comprenant la machine à état dans le même dossier que le fichier XML ciblé.
+
+## Examples
+
+
 
 ## Auteur
 
