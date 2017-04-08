@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+
 import xml.etree.ElementTree as ET
 from utils import *
 from Action import *
@@ -111,7 +115,9 @@ if __name__ == '__main__':
     all_states_top_level = []
     all_event = []
 
-    tree = ET.parse('complete.html')
+    envir = get_file_and_folder()
+    print("...\n")
+    tree = ET.parse(envir[0])
     root = tree.getroot()
     '''On parse chaque state du plus haut niveau'''
     for state in root:
@@ -119,4 +125,8 @@ if __name__ == '__main__':
             all_states_top_level.append(make_state(state))
 
     '''on génère le fichier java à partir du squelette statique'''
-    generate_file_from_skeleton(all_states_top_level, all_states_names, all_event)
+    str_java = generate_file_from_skeleton(all_states_top_level, all_states_names, all_event)
+    
+    open(envir[1]+"/FSM.java", "w").write(str_java)
+    str_log = "Fichier FSM.java généré dans le dosser :\n\t"
+    print((str_log.decode('utf8') + envir[1]))
