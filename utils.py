@@ -1,9 +1,12 @@
 import sys,os
 
+'''helper pour lancer la commande shell '''
+'''renvoie le nom du fichier et son chemin '''
 def get_file_and_folder():
     if len(sys.argv) != 2:
-        print("Helper :\n\tPython3 CodeGen.py [PathToFile]\n")
-        print("\tPython3 CodeGen.py complete.html\n")
+        print("Nombre d'arguments invalide !\n")
+        print("Helper :\n\tPython scxml2java.py [PathToFile]\n")
+        print("\tPython scxml2java.py complete.html\n")
         sys.exit(0)
 
     file = os.path.realpath(sys.argv[1])
@@ -52,5 +55,6 @@ def longest_common_substring(s1, s2):
                m[x][y] = 0
     return s1[x_longest - longest: x_longest]
 
+'''test sur la balise XML'''
 def xml_tag_equal_to(xml, tag):
     return xml.tag.split("}")[1] == tag
