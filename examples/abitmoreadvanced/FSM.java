@@ -40,7 +40,7 @@ class FSM {
         try {
             functions.get(action).invoke(context);
         } catch (NullPointerException | IllegalAccessException | InvocationTargetException e) {
-            System.out.println("Function Not Found");
+         //   System.out.println("Function Not Found");
         }
     }
 
