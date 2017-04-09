@@ -119,7 +119,7 @@ if __name__ == '__main__':
     print("...\n")
     tree = ET.parse(envir[0])
     root = tree.getroot()
-    '''On parse chaque state du plus haut niveau'''
+    '''On parse chaque state en partant du plus haut niveau'''
     for state in root:
         if state.get("id") is not None:
             all_states_top_level.append(make_state(state))
@@ -127,5 +127,5 @@ if __name__ == '__main__':
     '''on génère le fichier java à partir du squelette statique'''
     str_java = generate_file_from_skeleton(all_states_top_level, all_states_names, all_event)
     
-    open(envir[1]+"/FSM.java", "w").write(str_java)
+    open(envir[1] + "/FSM.java", "w").write(str_java)
     print("Fichier FSM.java généré dans le dosser :\n\t" + envir[1])

@@ -105,6 +105,7 @@ class State:
                 str_state += state.to_string(pretty, all_states_names)
             
             '''On enleve l'état parent de la liste des états'''
+        #    all_states_names = [names for names in all_states_names if names is not self.state_name]
             if self.state_name in all_states_names:
                 all_states_names.remove(self.state_name)
         else:
