@@ -3,10 +3,10 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 /* on liste tous les événements dans un énuméré*/
-enum Event {b1, b2}
+enum Event {B1, B2, B3}
 
 /* on liste tous les états dans un énuméré*/
-enum State {State_1_1, State_6, State_9State_10, State_9State_12, State_11State_10, State_11State_12}
+enum State {State_2}
 
 /*C'est la classe FSM java qui va être exécuté par le programme  en fonction de ses nécessités.*/
 class FSM {
@@ -36,7 +36,7 @@ class FSM {
     }
 
 	/*permet à la machine à état finie d'appeler la fonction en connaissant le nom de l'état courant*/
-    public void callFunctionForAction(String action) {
+    private void callFunctionForAction(String action) {
         try {
             functions.get(action).invoke(context);
         } catch (NullPointerException | IllegalAccessException | InvocationTargetException e) {
@@ -45,13 +45,13 @@ class FSM {
     }
 
 	/*similaire à callFunctionForAction, permet juste d'afficher un log en plus*/
-    public void callFunctionForActionWithLog(String action, String log) {
+    private void callFunctionForActionWithLog(String action, String log) {
         System.out.print(log + "\n");
         callFunctionForAction(action);
     }
 
 	/*début du switch/case représentant les différents états de la machine a états fini.*/
-    void activate(Event event) {
+    public void activate(Event event) {
 		switch (currentState) {
 			case State_2:
 				callFunctionForActionWithLog("State_1_onentry","OnEntry du State1");

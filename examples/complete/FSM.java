@@ -36,7 +36,7 @@ class FSM {
     }
 
 	/*permet à la machine à état finie d'appeler la fonction en connaissant le nom de l'état courant*/
-    public void callFunctionForAction(String action) {
+    private void callFunctionForAction(String action) {
         try {
             functions.get(action).invoke(context);
         } catch (NullPointerException | IllegalAccessException | InvocationTargetException e) {
@@ -45,13 +45,13 @@ class FSM {
     }
 
 	/*similaire à callFunctionForAction, permet juste d'afficher un log en plus*/
-    public void callFunctionForActionWithLog(String action, String log) {
+    private void callFunctionForActionWithLog(String action, String log) {
         System.out.print(log + "\n");
         callFunctionForAction(action);
     }
 
 	/*début du switch/case représentant les différents états de la machine a états fini.*/
-    void activate(Event event) {
+    public void activate(Event event) {
 		switch (currentState) {
 			case State_1_1:
 				if (event == Event.b1) {
