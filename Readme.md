@@ -63,7 +63,11 @@ Gènère un fichier FSM.java comprenant la machine à état dans le même dossie
 
 ## Examples
 
-
+* [simpleOne](https://github.com/atthom/Scxml2Java/tree/master/examples/simpleOne)
+* [inside](https://github.com/atthom/Scxml2Java/tree/master/examples/inside)
+* [entry_exit](https://github.com/atthom/Scxml2Java/tree/master/examples/entry_exit)
+* [abitmoreadvanced](https://github.com/atthom/Scxml2Java/tree/master/examples/abitmoreadvanced)
+* [complete](https://github.com/atthom/Scxml2Java/tree/master/examples/complete)
 
 ## Auteur
 
