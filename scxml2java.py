@@ -5,6 +5,7 @@ from utils import *
 from Action import *
 from Transition import *
 from State import *
+import codecs
 
 '''cette fonction permet de générer les transitions pour un État à partir de son format XML'''
 def gen_transition(current_State, transition):
@@ -139,7 +140,7 @@ if __name__ == '__main__':
     main = open("./static_protojava/main.protojava", "r").read()
 
     open(envir[1] + "/FSM.java", "w").write(str_java)
-    open(envir[1] + "/FSM_cient.java", "w").write(client)
+    codecs.open(envir[1] + "/FSM_client.java", "w", "utf-8").write(client)
     open(envir[1] + "/main.java", "w").write(main)
 
     print("Fichier FSM.java, FSM_cient.java et main.java généré dans le dosser :\n\t" + envir[1])

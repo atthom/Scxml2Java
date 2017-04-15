@@ -36,8 +36,9 @@ def generate_file_from_skeleton(all_states_top_level, all_states_names, all_even
     return str_java
 
 def generate_client(all_states_top_level, first_event):    
-    connects = [action.connect() for action in get_all_actions(all_states_top_level)]
-    functs = [action.gen_funct() for action in get_all_actions(all_states_top_level)]
+    
+    connects = [action.connect() for action in set(get_all_actions(all_states_top_level))]
+    functs = [action.gen_funct() for action in set(get_all_actions(all_states_top_level))]
 
     str_java = "public class FSM_client {\n\tprivate FSM fsm;\n\n\tFSM_client() {\n"
     str_java += "\t\t// On connecte la FSM à notre classe pour avoir les fonctions\n"
@@ -46,7 +47,7 @@ def generate_client(all_states_top_level, first_event):
         str_java += connect
     str_java += "\t}\n"
 
-    str_java += "\tpublic void exec() {\n\t\tfsm.activate(Event." + first_event + ");\n\t}\n"
+    str_java += "\n\tpublic void exec() {\n\t\tfsm.activate(Event." + first_event + ");\n\t}\n\n"
 
     for funct in functs:
         str_java += funct
