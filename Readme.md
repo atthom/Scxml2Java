@@ -25,8 +25,8 @@ Il y a plusieurs fichiers nécessaires pour lancer le code java :
 
 * FSM.java : la FSM générée.
 * static_begin.protojava : le fichier statique pour générer la FSM.
-* Un main.java : pour executer le programme (Le fichier main n'est pas généré !).
-* Un FSM_client : pour executer ses propres fonctions en liens avec la FSM (Le fichier client n'est pas généré !).
+* Un main.java : pour executer le programme (Le fichier main est généré).
+* Un FSM_client : pour executer ses propres fonctions en liens avec la FSM (le fichier client est généré).
 
 L'architecture envisagé est un peu spéciale :
 

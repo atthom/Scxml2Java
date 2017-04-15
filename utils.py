@@ -53,9 +53,7 @@ def generate_client(all_states_top_level, first_event):
 
     str_java += "\n}\n"
 
-
     all_actions = get_all_actions(all_states_top_level)
-
 
     return str_java
 
