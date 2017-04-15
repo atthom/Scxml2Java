@@ -23,3 +23,9 @@ class Action:
             return pretty_printer(pretty) + "callFunctionForAction(\"" + self.name + "\");\n"
         else:
             return pretty_printer(pretty) + "callFunctionForActionWithLog(\"" + self.name + "\",\"" + self.log + "\");\n"
+    
+    def connect(self):
+        return "\n\t\tfsm.setFunctionsForAction(\"" + self.name + "\", \"" + self.name + "\" );\n"
+    
+    def gen_funct(self):
+        return "\tpublic void "+ self.name +"() {\n\t\t\n\t}\n"

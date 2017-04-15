@@ -32,7 +32,7 @@ def get_log(xml_child):
     str_log = None
     if log is not None:
         if log.get("label") is not None and log.get("expr") is not None:
-             str_log = "log(" + log.get("label") + ":"log.get("expr") + ")"
+             str_log = "log(" + log.get("label") + ":" + log.get("expr") + ")"
         elif log.get("label") is not None:
             str_log = "log(" + log.get("label") + ")"
         else:            
@@ -57,7 +57,6 @@ def make_state(state):
             elif xml_tag_equal_to(transition, "transition"):
                 gen_transition(current_state, transition)
         make_entry_exit(state, current_state)
-
     return current_state
 
 '''On gère toutes les actions en entré et en sortie d'un état'''
@@ -135,5 +134,12 @@ if __name__ == '__main__':
     '''on génère le fichier java à partir du squelette statique'''
     str_java = generate_file_from_skeleton(all_states_top_level, all_states_names, all_event)
     
+    client = generate_client(all_states_top_level, all_event[0])
+
+    main = open("./static_protojava/main.protojava", "r").read()
+
     open(envir[1] + "/FSM.java", "w").write(str_java)
-    print("Fichier FSM.java généré dans le dosser :\n\t" + envir[1])
+    open(envir[1] + "/FSM_cient.java", "w").write(client)
+    open(envir[1] + "/main.java", "w").write(main)
+
+    print("Fichier FSM.java, FSM_cient.java et main.java généré dans le dosser :\n\t" + envir[1])

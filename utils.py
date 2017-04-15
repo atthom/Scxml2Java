@@ -20,7 +20,7 @@ def get_enum(type_enum, _list):
 
 '''génère un fichier Java à partir du fichier statique'''
 def generate_file_from_skeleton(all_states_top_level, all_states_names, all_event):
-    str_java = open("static_begin.protojava", "r").read()
+    str_java = open("./static_protojava/FSM.protojava", "r").read()
     pretty = 3
 
     '''écrit tous les états accessibles au plus grand niveau'''
@@ -34,6 +34,45 @@ def generate_file_from_skeleton(all_states_top_level, all_states_names, all_even
     str_java = str_java.replace("State.;", "State." + all_states_names[0] + ";")
 
     return str_java
+
+def generate_client(all_states_top_level, first_event):    
+    connects = [action.connect() for action in get_all_actions(all_states_top_level)]
+    functs = [action.gen_funct() for action in get_all_actions(all_states_top_level)]
+
+    str_java = "public class FSM_client {\n\tprivate FSM fsm;\n\n\tFSM_client() {\n"
+    str_java += "\t\t// On connecte la FSM à notre classe pour avoir les fonctions\n"
+    str_java += "\t\tfsm = new FSM(this);\n\t\t\n"
+    for connect in connects:
+        str_java += connect
+    str_java += "\t}\n"
+
+    str_java += "\tpublic void exec() {\n\t\tfsm.activate(Event." + first_event + ");\n\t}\n"
+
+    for funct in functs:
+        str_java += funct
+
+    str_java += "\n}\n"
+
+
+    all_actions = get_all_actions(all_states_top_level)
+
+
+    return str_java
+
+def get_all_actions(all_states):
+    all_actions = []
+
+    for state in all_states:
+        all_actions.extend(state.onEntry)
+        all_actions.extend(state.onExit)
+        for transition in state.transitions:
+             all_actions.extend(transition.action_trigger)
+        all_actions.extend(get_all_actions(state.states))
+   
+    return all_actions
+   #
+
+   #  return [action.name for action in all_actions]
 
 '''renvoie un nombre arbitraire de tabulation pour un bel affichage du code'''
 def pretty_printer(nb):
