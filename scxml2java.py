@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
-
 import xml.etree.ElementTree as ET
 from utils import *
 from Action import *
@@ -12,10 +10,14 @@ from State import *
 def gen_transition(current_State, transition):
     event = transition.get("event")
     target = transition.get("target")
+    '''Pour gérer les transitions internes'''
+    if target is None:
+        target = current_State.state_name
 
     name_transition = transition.tag.split("}")[1]
     str_action = current_State.state_name
 
+    '''On ne gère pas les transitions sans évènements'''
     if event is not None:
         str_action += "_" + event
         action = Action(str_action, get_log(transition))
@@ -24,6 +26,7 @@ def gen_transition(current_State, transition):
         if event not in all_event:
             all_event.append(event)
 
+'''On gère les logs de la FSM'''
 def get_log(xml_child):
     log = xml_child.find("{http://www.w3.org/2005/07/scxml}log")
     str_log = None
@@ -36,13 +39,13 @@ def get_log(xml_child):
             str_log = "log(" + log.get("expr") + ")"   
     return str_log
 
-
 '''génère un état à partir de son format XML'''
 def make_state(state):
     _id = state.get("id")
     current_state = State(_id)
     all_states_names.append(_id)
 
+    '''Si l'état est parallélisé, on effectue le produit de ses états'''
     if xml_tag_equal_to(state, "parallel"):
         current_state.add_state(unparallelize(state))
     else:
@@ -53,11 +56,11 @@ def make_state(state):
                 current_state.add_state(make_state(transition))
             elif xml_tag_equal_to(transition, "transition"):
                 gen_transition(current_state, transition)
-
         make_entry_exit(state, current_state)
 
     return current_state
 
+'''On gère toutes les actions en entré et en sortie d'un état'''
 def make_entry_exit(xml_state, current_state):
     for transition in xml_state: 
         if xml_tag_equal_to(transition, "onentry"):
