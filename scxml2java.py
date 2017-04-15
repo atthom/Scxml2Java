@@ -28,7 +28,12 @@ def get_log(xml_child):
     log = xml_child.find("{http://www.w3.org/2005/07/scxml}log")
     str_log = None
     if log is not None:
-        str_log = log.get("expr")
+        if log.get("label") is not None and log.get("expr") is not None:
+             str_log = "log(" + log.get("label") + ":"log.get("expr") + ")"
+        elif log.get("label") is not None:
+            str_log = "log(" + log.get("label") + ")"
+        else:            
+            str_log = "log(" + log.get("expr") + ")"   
     return str_log
 
 
