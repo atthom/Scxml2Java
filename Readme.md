@@ -1,6 +1,6 @@
 # Scxml2Java
 
-L'objectif est de convertire une FSM construite en SCXML avec QTcrator vers une classe java qui va simuler une FSM.
+L'objectif est de convertire une FSM construite en SCXML avec QTcreator vers une classe java qui va simuler une FSM.
 
 ## Caractéristiques
 
@@ -31,27 +31,29 @@ Il y a plusieurs fichiers nécessaires pour lancer le code java :
 L'architecture envisagé est un peu spéciale :
 
 La FSM prend en paramètre la classe cliente pour pouvoir invoquer les fonctions de l'utilisateur au bon moment.
-Ensuite on défini la fonction executée à un état précis de la FSM.
+Ensuite on défini la fonction à executé (setFunctionsForAction).
+Cette fonction sera appellée à un moment précis dans la FSM (callFunctionsForAction).
 Cette définition est inspirée de la fonction Connect() de Qt qui permet de relier une fonction à un évènement.
 
 
 ## Fonctionnalitées implémentées
 
 * L'aplatissement des états parents est supporté.
-* Les logs sont implémentés (on utilise que 'expr' pour afficher le texte).
+* Les logs sont implémentés (on affichera le label et l'expression si ils existent).
 * Les actions à l'interieur des transitions sont supportés.
 * Les OnEntry/OnExit sont supporté.
 * La parallélisation est partiellement supporté.
   * Les transitions en provenance d'un état non parallèle vers un état parallèle n'est pas géré.
-  * Les états parents à l'interieur d'états parallèle sont partiellement gérés.
+  * Les états parents à l'intérieur d'états parallèle sont partiellement gérés.
 
 ## Attention
 
 * Les transitions avec un point ne sont pas supporté.
 * Les états historiques ne sont pas supporté.
-* les scripts ne sont pas supporté.
-* les raises ne sont pas supporté.
-* les fonctions définies pour être executé par la FSM doivent être publique
+* Les transitions sans évènement ne sont pas supporté.
+* Les scripts ne sont pas supporté.
+* Les sends et les raises ne sont pas supporté.
+* Les fonctions définies dans la clase client doivent être publique pour être executé par la FSM.
 
 ## Lancer les tests
 
