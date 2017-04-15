@@ -35,6 +35,9 @@ Ensuite on défini la fonction à executé (setFunctionsForAction).
 Cette fonction sera appellée à un moment précis dans la FSM (callFunctionsForAction).
 Cette définition est inspirée de la fonction Connect() de Qt qui permet de relier une fonction à un évènement.
 
+J'ai choisi cette architecture pour pouvoir plus facilement réutiliser cet outils dans d'autres projets.
+En effet, de cette façon il sera plus facile pour moi de réfléchir au déroulement de l'application en construisant la machine à état, puis d'intéger des morceaux de code appelé au bon moment. Le Language Java étant le plus généralement utilisé à aujourd'hui (à Polytech mais aussi ailleurs), je maximise mes chances de réutiliser cet outils à un autre moment.
+
 
 ## Fonctionnalitées implémentées
 
@@ -58,18 +61,19 @@ Cette définition est inspirée de la fonction Connect() de Qt qui permet de rel
 ## Lancer les tests
 
 ```bash
-Python3 tests.py [nom_fichier]
+Python3 tests.py [nom_fichier.xml]
 ```
 
 Gènère un fichier FSM.java comprenant la machine à état dans le même dossier que le fichier XML ciblé.
+Gènère un fichier FSM_client.java comprenant les fonctions que l'utilisateur veux entrer.
 
 ## Examples
 
+* [example1](https://github.com/atthom/Scxml2Java/tree/master/examples/example1)
 * [simpleOne](https://github.com/atthom/Scxml2Java/tree/master/examples/simpleOne)
 * [inside](https://github.com/atthom/Scxml2Java/tree/master/examples/inside)
 * [entry_exit](https://github.com/atthom/Scxml2Java/tree/master/examples/entry_exit)
 * [abitmoreadvanced](https://github.com/atthom/Scxml2Java/tree/master/examples/abitmoreadvanced)
-* [complete](https://github.com/atthom/Scxml2Java/tree/master/examples/complete)
 
 ## Auteur
 
