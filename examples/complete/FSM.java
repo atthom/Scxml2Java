@@ -62,7 +62,7 @@ class FSM {
 			case State_6:
 				if (event == Event.b1) {
 					callFunctionForAction("State_1_b1");
-					currentState = State.Parallel_1;
+					currentState = State.State_9State_10;
 				}
 			break;
 			case State_9State_10:

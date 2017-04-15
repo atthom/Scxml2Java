@@ -58,7 +58,9 @@ def make_state(state):
             elif xml_tag_equal_to(transition, "transition"):
                 gen_transition(current_state, transition)
         make_entry_exit(state, current_state)
+
     return current_state
+
 
 '''On gère toutes les actions en entré et en sortie d'un état'''
 def make_entry_exit(xml_state, current_state):
@@ -117,6 +119,21 @@ def unparallelize(parallel_root):
     newPara.states.extend(new_states)
     return newPara
 
+
+def check_transition_composed_state(list_state):
+    for state in list_state:
+        if state.states:
+            replace_transition_composed_state(state, all_states_top_level)
+            check_transition_composed_state(state.states)
+
+def replace_transition_composed_state(state, all_states):
+    for current_state in all_states:
+        if current_state.state_name!=state.state_name:
+            for transition in current_state.transitions:
+                if transition.next_state == state.state_name:
+                        transition.next_state = state.states[0].state_name
+            replace_transition_composed_state(state, current_state.states)
+
 '''Début du script'''
 if __name__ == '__main__':
     all_states_names = []
@@ -131,7 +148,8 @@ if __name__ == '__main__':
     for state in root:
         if state.get("id") is not None:
             all_states_top_level.append(make_state(state))
-
+    
+    check_transition_composed_state(all_states_top_level)
     '''on génère le fichier java à partir du squelette statique'''
     str_java = generate_file_from_skeleton(all_states_top_level, all_states_names, all_event)
     
