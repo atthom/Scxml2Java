@@ -20,7 +20,7 @@ class FSM {
 
 	/*initialisation de la  machine a états finie, en fonction de la classe qui comprend les fonctions de l'utilisateur*/
     public FSM(Object context) {
-        this.currentState = State.State_1_1;
+        this.currentState = State.State_2;
         this.functions = new HashMap<>();
         this.context = context;
     }
@@ -54,22 +54,22 @@ class FSM {
     public void activate(Event event) {
 		switch (currentState) {
 			case State_2:
-				callFunctionForActionWithLog("State_1_onentry","OnEntry du State1");
-				callFunctionForActionWithLog("State_2_onentry","OnEntry du State2");
+				callFunctionForActionWithLog("State_1_onentry","log(OnEntry du State1)");
+				callFunctionForActionWithLog("State_2_onentry","log(OnEntry du State2)");
 				if (event == Event.B1) {
-					callFunctionForActionWithLog("State_2_B1","execute B1");
+					callFunctionForActionWithLog("State_2_B1","log(execute B1)");
 					currentState = State.State_2;
 				}
 				if (event == Event.B2) {
-					callFunctionForActionWithLog("State_2_B2","execute B2");
+					callFunctionForActionWithLog("State_2_B2","log(execute B2)");
 					currentState = State.State_2;
 				}
 				if (event == Event.B3) {
-					callFunctionForActionWithLog("State_1_B3","execute B3");
+					callFunctionForActionWithLog("State_1_B3","log(execute B3)");
 					currentState = State.State_2;
 				}
-				callFunctionForActionWithLog("State_2_onexit","OnExit du state2");
-				callFunctionForActionWithLog("State_1_onexit","OnExit du State 1");
+				callFunctionForActionWithLog("State_2_onexit","log(OnExit du state2)");
+				callFunctionForActionWithLog("State_1_onexit","log(OnExit du State 1)");
 			break;
 		}
 	}

@@ -20,7 +20,7 @@ class FSM {
 
 	/*initialisation de la  machine a états finie, en fonction de la classe qui comprend les fonctions de l'utilisateur*/
     public FSM(Object context) {
-        this.currentState = State.State_1_1;
+        this.currentState = State.State_1;
         this.functions = new HashMap<>();
         this.context = context;
     }

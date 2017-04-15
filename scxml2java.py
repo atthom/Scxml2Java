@@ -119,7 +119,9 @@ def unparallelize(parallel_root):
     newPara.states.extend(new_states)
     return newPara
 
-
+'''Les deux fonctions suivantes permette de résoudre un problème lié aux états hierarchiques
+L'état parent est supprimé au profits de ses fils, 
+il est nécéssaire de rediriger toutes les tranitions en direction de cet état'''
 def check_transition_composed_state(list_state):
     for state in list_state:
         if state.states:

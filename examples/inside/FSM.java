@@ -55,13 +55,13 @@ class FSM {
 		switch (currentState) {
 			case State_1_1:
 				if (event == Event.b1) {
-					callFunctionForActionWithLog("State_1_1_b1","win");
+					callFunctionForActionWithLog("State_1_1_b1","log(win)");
 					currentState = State.State_6;
 				}
 			break;
 			case State_6:
 				if (event == Event.b1) {
-					callFunctionForActionWithLog("State_1_b1","fail");
+					callFunctionForActionWithLog("State_1_b1","log(fail)");
 					currentState = State.State_2;
 				}
 			break;
